@@ -529,6 +529,7 @@ async function vLanding(id){
   return `<div style="${theme(k)}"><div class="wrap"><section class="lp"><div>
       <span class="pill">${units.length} ${L("وحدات","units")} · ${esc(tx(k.hours))}</span><h1 style="margin-top:8px">${esc(tx(k.name))}</h1>
       <div class="tag">${esc(tx(k.tagline))}</div><p style="font-size:21px">${esc(tx(k.promise))}</p>
+      ${k.promo_video ? `<div class="vid" style="background:#000;margin:18px 0"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="${esc(tx(k.name))}" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : ""}
       ${gets.length ? `<div class="sec"><h2 class="fa">${L("ماذا تحصل","What you get")}</h2><ul class="gets">${gets.map(g => `<li>${esc(g)}</li>`).join("")}</ul></div>` : ""}
       <div class="sec"><h2 class="fa">${L("الوحدات","Units")}</h2><div class="ul">${units.map(u => `<div class="card u"><span class="num">${u.n}</span><div><b>${esc(tx(u.title))}</b>${u.question ? `<small>${L("السؤال","Question")}: ${esc(tx(u.question))}</small>` : ""}${u.outcome ? `<small>${L("تخرج بـ","You leave with")}: ${esc(tx(u.outcome))}</small>` : ""}</div></div>`).join("")}</div></div></div>
     <aside class="card buy stitch"><div class="cv">${k.cover_url ? `<img src="${esc(k.cover_url)}" alt="">` : ""}</div><div class="in">
@@ -605,11 +606,12 @@ async function vMy(){
 /* المشغّل ومساحة الحقيبة */
 let PL = { kit:null, unit:1, tab:"video", space:"content" };
 const passed = (id) => (S.state[id] && S.state[id].passed) || [];
-function unlocked(units, id, n){ return !units.some(x => x.required && x.n < n && !passed(id).includes(x.n)); }
+const hasIntro = k => !!(k && (k.intro || k.promo_video));
+function unlocked(units, id, n){ if (n === 0) return true; return !units.some(x => x.required && x.n < n && !passed(id).includes(x.n)); }
 function sideHtml(k, units, u){
   const req = units.filter(x => x.required).length || units.length, done = passed(k.id).length, pct = Math.round(done / req * 100);
   return `<h3>${esc(tx(k.name))}</h3><div class="bar"><i style="width:${pct}%"></i></div><div class="muted" style="font-size:17px;margin-bottom:10px">${done} ${L("من","of")} ${req} ${L("وحدات","units")}</div>
-    <div class="ulist">${units.map(x => { const st = passed(k.id).includes(x.n) ? "done" : unlocked(units, k.id, x.n) ? "" : "lock";
+    <div class="ulist">${hasIntro(k) ? `<button class="ui ${u === 0 ? "cur" : ""}" data-u="0"><span class="num">▶</span><span><b>${esc(tx((k.intro && k.intro.title) || { ar:"مقدمة الحقيبة", en:"Kit introduction" }))}</b><small>${L("ابدأ من هنا","Start here")}</small></span></button>` : ""}${units.map(x => { const st = passed(k.id).includes(x.n) ? "done" : unlocked(units, k.id, x.n) ? "" : "lock";
       return `<button class="ui ${st} ${x.n === u ? "cur" : ""}" data-u="${x.n}"><span class="num">${st === "done" ? "✓" : st === "lock" ? "🔒" : x.n}</span><span><b>${esc(tx(x.title))}</b>${x.minutes ? `<small>${esc(x.minutes)} ${L("دقيقة","min")}</small>` : ""}</span></button>`; }).join("")}</div>`;
 }
 async function vLearn(id, n){
@@ -617,13 +619,24 @@ async function vLearn(id, n){
   if (!S.user) return needLogin("learn/" + id);
   const units = await loadUnits(id); const st = await loadState(id);
   if (!st.enrolled) { setTimeout(() => location.hash = "#/p/" + id, 0); return spinner(); }
-  if (PL.kit !== id) PL = { kit:id, unit:1, tab:"video", space:"content" };
-  let u = +n || PL.unit || 1;
-  if (!unlocked(units, id, u)) { const firstOpen = units.find(x => !passed(id).includes(x.n)); u = firstOpen ? firstOpen.n : units.length; }
-  PL.unit = u;
+  if (PL.kit !== id) PL = { kit:id, unit:null, tab:"video", space:"content" };
   const spaces = [["content",L("المحتوى","Content"),I.play2,""],["news",L("الإعلانات","Announcements"),I.megaphone,"copper"],["lib",L("المكتبة","Library"),I.folder,"sand"],["fb",L("رأيك","Feedback"),I.star,"plum"]];
   const bar = `<nav class="space" id="space">${spaces.map(x => `<button data-s="${x[0]}" class="${PL.space === x[0] ? "on" : ""}"><span class="ic3 s ${x[3]}">${x[2]}</span><span>${x[1]}</span></button>`).join("")}</nav>`;
+
   if (PL.space !== "content") return `<div style="${theme(k)}"><div class="wrap">${bar}<div style="padding:10px 0 40px" id="spaceBody">${spinner()}</div></div></div>`;
+  let u = (n !== undefined && n !== "") ? +n : (PL.unit ?? (hasIntro(k) && !passed(id).length ? 0 : 1));
+  if (u === 0 && !hasIntro(k)) u = 1;
+  if (!unlocked(units, id, u)) { const firstOpen = units.find(x => !passed(id).includes(x.n)); u = firstOpen ? firstOpen.n : units.length; }
+  PL.unit = u;
+  if (u === 0) {
+    const it = k.intro || {};
+    return `<div style="${theme(k)}"><div class="wrap">${bar}<div class="pl"><aside class="card side" id="side">${sideHtml(k, units, 0)}</aside><section class="main">
+      <div class="card uh"><div class="k">${L("ابدأ من هنا","Start here")}</div><h2>${esc(tx(it.title || { ar:"مقدمة الحقيبة", en:"Kit introduction" }))}</h2>${it.text ? `<p style="margin:6px 0 0">${esc(tx(it.text))}</p>` : ""}</div>
+      ${k.promo_video ? `<div class="vid" style="background:#000"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="intro" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : ""}
+      ${it.pages ? `<div class="card pdfv" style="margin-top:14px"><div class="tb"><b>${L("نظرة عامة على الحقيبة","Kit overview")}</b>${it.pdf_url ? `<a class="btn s" style="margin-inline-start:auto;min-height:40px;padding:0 14px;font-size:18px" href="${esc(it.pdf_url)}" target="_blank" rel="noopener" download>${I.dl}${L("تنزيل","Download")}</a>` : ""}</div><div class="pages">${pagesHtml(it.pages)}</div></div>` : ""}
+      <div class="qbar">${(k.files || []).length ? `<button class="btn s" id="toLib">${I.folder}${L("كراسة أدوات العمل في المكتبة","Toolkit workbook in the library")}</button>` : ""}<button class="btn p" id="toU1">${L("ابدأ الوحدة الأولى","Start unit one")}</button></div>
+    </section></div></div></div>`;
+  }
   const U = units.find(x => x.n === u);
   const tabs = [["video",L("الفيديو","Video"),I.vid]]; if (U.pdf_url || U.pdf_pages) tabs.push(["file",L("الملف","File"),I.file]); tabs.push(["quiz",L("الامتحان","Exam"),I.quiz]); if (U.content) tabs.push(["text",L("نص الدرس","Lesson text"),I.text]);
   if (!tabs.some(t => t[0] === PL.tab)) PL.tab = "video";
@@ -725,6 +738,9 @@ async function bindLearn(id){
   document.querySelectorAll("#space button").forEach(b => b.onclick = () => { PL.space = b.dataset.s; if (b.dataset.s !== "fb") PL.fbUnit = null; render(); });
   if (PL.space !== "content") { await spaceBody(k, units); return; }
   bindSide(k, units);
+  const t1 = $("#toU1"); if (t1) t1.onclick = () => { PL.tab = "video"; location.hash = "#/learn/" + k.id + "/1"; };
+  const tl = $("#toLib"); if (tl) tl.onclick = () => { PL.space = "lib"; render(); };
+  if (PL.unit === 0) return;
   document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { PL.tab = b.dataset.t; document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("on", x === b)); pane(k, units); });
   await pane(k, units);
 }
@@ -849,7 +865,7 @@ async function render(){
     else if (r === "p") { html = await vLanding(parts[1]); after = () => bindLanding(parts[1]); }
     else if (r === "login") { html = vLogin(); after = bindLogin; }
     else if (r === "my") html = await vMy();
-    else if (r === "learn") { if (parts[2]) PL.unit = +parts[2]; html = await vLearn(parts[1], parts[2]); after = () => bindLearn(parts[1]); }
+    else if (r === "learn") { html = await vLearn(parts[1], parts[2]); after = () => bindLearn(parts[1]); }
     else if (r === "cert") { html = await vCert(parts[1]); after = () => drawCert(parts[1]); }
     else if (r === "verify") html = await vVerify(parts[1]);
     else if (r === "admin") { html = await vAdmin(); after = bindAdmin; }
