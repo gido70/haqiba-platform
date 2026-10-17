@@ -634,7 +634,7 @@ async function vLearn(id, n){
       <div class="card uh"><div class="k">${L("ابدأ من هنا","Start here")}</div><h2>${esc(tx(it.title || { ar:"مقدمة الحقيبة", en:"Kit introduction" }))}</h2>${it.text ? `<p style="margin:6px 0 0">${esc(tx(it.text))}</p>` : ""}</div>
       ${k.promo_video ? `<div class="vid" style="background:#000"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="intro" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : ""}
       ${it.pages ? `<div class="card pdfv" style="margin-top:14px"><div class="tb"><b>${L("نظرة عامة على الحقيبة","Kit overview")}</b>${it.pdf_url ? `<a class="btn s" style="margin-inline-start:auto;min-height:40px;padding:0 14px;font-size:18px" href="${esc(it.pdf_url)}" target="_blank" rel="noopener" download>${I.dl}${L("تنزيل","Download")}</a>` : ""}</div><div class="pages">${pagesHtml(it.pages)}</div></div>` : ""}
-      <div class="qbar">${(k.files || []).length ? `<button class="btn s" id="toLib">${I.folder}${L("كراسة أدوات العمل في المكتبة","Toolkit workbook in the library")}</button>` : ""}<button class="btn p" id="toU1">${L("ابدأ الوحدة الأولى","Start unit one")}</button></div>
+      <div class="qbar">${(k.files || []).map((f, j) => `<button class="btn s" data-intro-file="${j}">${I.file}${esc(tx(f.title))}</button>`).join("")}<button class="btn p" id="toU1">${L("ابدأ الوحدة الأولى","Start unit one")}</button></div>
     </section></div></div></div>`;
   }
   const U = units.find(x => x.n === u);
@@ -715,9 +715,13 @@ async function spaceBody(k, units){
       .concat((k.files || []).map((f, i) => ({ t: tx(f.title), s: tx(f.sub), f: i, c: ["copper","sand","plum"][i % 3] })));
     el.innerHTML = `<p class="muted" style="margin:0 0 12px">${L("كل ملفات الحقيبة في مكان واحد.","All kit files in one place.")}</p><div class="lib">${items.map(x => `<button class="fi lift" ${x.n ? `data-n="${x.n}"` : `data-f="${x.f}"`}><span class="ic3 s ${x.c}">${I.file}</span><span><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span></button>`).join("")}</div><div id="libView" style="margin-top:16px"></div>`;
     el.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { PL.space = "content"; PL.tab = "file"; location.hash = "#/learn/" + k.id + "/" + b.dataset.n; render(); });
-    el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { const f = k.files[+b.dataset.f];
-      $("#libView").innerHTML = `<div class="card pdfv"><div class="tb"><b>${esc(tx(f.title))}</b><a class="btn s" style="margin-inline-start:auto;min-height:40px;padding:0 14px;font-size:18px" href="${esc(f.url)}" target="_blank" rel="noopener" download>${I.dl}${L("تنزيل الملف","Download file")}</a></div>${f.pages ? `<div class="pages">${pagesHtml(f.pages)}</div>` : ""}</div>`;
-      $("#libView").scrollIntoView({ behavior: "smooth", block: "start" }); });
+    const showFile = i => { const f = k.files[i];
+      const others = k.files.map((o, j) => j === i ? "" : `<button class="btn c" data-open="${j}" style="min-height:40px;padding:0 14px;font-size:18px">${I.file}${L("افتح","Open")} ${esc(tx(o.title))}</button>`).join("");
+      $("#libView").innerHTML = `<div class="card pdfv"><div class="tb"><b>${esc(tx(f.title))}</b><span style="margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap">${others}<a class="btn s" style="min-height:40px;padding:0 14px;font-size:18px" href="${esc(f.url)}" target="_blank" rel="noopener" download>${I.dl}${L("تنزيل الملف","Download file")}</a></span></div>${f.pages ? `<div class="pages">${pagesHtml(f.pages)}</div>` : ""}</div>`;
+      $("#libView").querySelectorAll("[data-open]").forEach(b => b.onclick = () => showFile(+b.dataset.open));
+      $("#libView").scrollIntoView({ behavior: "smooth", block: "start" }); };
+    el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => showFile(+b.dataset.f));
+    if (PL.openFile !== undefined && PL.openFile !== null) { const i = PL.openFile; PL.openFile = null; showFile(i); }
   } else if (PL.space === "fb") {
     const un = PL.fbUnit || PL.unit;
     el.innerHTML = `<div class="card pad" style="max-width:720px"><h2 class="fa" style="font-size:28px">${L("رأيك يهمنا","Your feedback matters")}</h2>
@@ -739,7 +743,7 @@ async function bindLearn(id){
   if (PL.space !== "content") { await spaceBody(k, units); return; }
   bindSide(k, units);
   const t1 = $("#toU1"); if (t1) t1.onclick = () => { PL.tab = "video"; location.hash = "#/learn/" + k.id + "/1"; };
-  const tl = $("#toLib"); if (tl) tl.onclick = () => { PL.space = "lib"; render(); };
+  document.querySelectorAll("[data-intro-file]").forEach(b => b.onclick = () => { PL.space = "lib"; PL.openFile = +b.dataset.introFile; render(); });
   if (PL.unit === 0) return;
   document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { PL.tab = b.dataset.t; document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("on", x === b)); pane(k, units); });
   await pane(k, units);
