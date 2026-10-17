@@ -786,7 +786,7 @@ let AT = "people";
 async function vAdmin(){
   if (!S.user) return needLogin("admin");
   if (!isOwner()) return `<div class="wrap"><div class="card auth"><h1>${L("هذه اللوحة لصاحب المنصة","This panel is for the platform owner")}</h1></div></div>`;
-  const tabs = [["people",L("المتدربون","Trainees"),I.users],["access",L("منح الوصول","Access"),I.key],["exam",L("الامتحانات","Exams"),I.quiz],["fb",L("الآراء","Feedback"),I.star],["index",L("الإندكس","Project index"),I.book]];
+  const tabs = [["people",L("المتدربون","Trainees"),I.users],["access",L("منح الوصول","Access"),I.key],["exam",L("الامتحانات","Exams"),I.quiz],["fb",L("الآراء","Feedback"),I.star],["guide",L("الدليل","Build guide"),I.folder],["index",L("الإندكس","Project index"),I.book]];
   return `<div class="wrap adm"><h1>${L("لوحة المدرب","Trainer panel")}</h1>
     <nav class="space" id="atabs">${tabs.map(t => `<button data-t="${t[0]}" class="${AT === t[0] ? "on" : ""}" style="--pa:var(--brand);--ps:var(--bsoft)"><span class="ic3 s">${t[2]}</span><span>${t[1]}</span></button>`).join("")}</nav>
     <div id="abody" style="margin-top:14px">${spinner()}</div></div>${foot()}`;
@@ -832,8 +832,8 @@ async function adminBody(){
     } else if (AT === "fb") {
       const { data, error } = await sb.from("hq_feedback").select("*").order("created_at", { ascending: false }).limit(200); if (error) throw error;
       el.innerHTML = data.length ? `<div class="feed">${data.map(f => `<article class="card post"><div class="hd"><span class="ic3 s plum">${I.star}</span><div><b>${f.rating ? "★".repeat(f.rating) : "—"} · ${esc(tx((kit(f.kit_id) || {}).name))}${f.unit_n ? " · " + L("الوحدة","Unit") + " " + f.unit_n : ""}</b><small>${fmtDate(f.created_at)}</small></div></div><p>${esc(f.note || "")}</p></article>`).join("")}</div>` : `<p class="muted">${L("لا آراء بعد.","No feedback yet.")}</p>`;
-    } else if (AT === "index") {
-      const { data, error } = await sb.from("hq_docs").select("body,updated_at").eq("id", "index").maybeSingle(); if (error) throw error;
+    } else if (AT === "index" || AT === "guide") {
+      const { data, error } = await sb.from("hq_docs").select("body,updated_at").eq("id", AT).maybeSingle(); if (error) throw error;
       if (!data) { el.innerHTML = `<p class="muted">${L("لا إندكس محفوظ بعد.","No index saved yet.")}</p>`; return; }
       const X = data.body; let it = 0;
       const draw = () => {
