@@ -3,56 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>مسار · منصة الحقائب التدريبية</title>
+<title>الحقيبة · منصة الحقائب التدريبية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Reem+Kufi:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#FFFCF3;--card:#FFFFFF;--ink:#1F2A37;--body:#3F4A57;--mute:#6B7280;
-  --navy:#123E6B;--gold:#C9971F;--gsoft:#FBF1D6;--teal:#0E7C8C;--soft:#E8F4F3;--line:#EADFC8;--th:#F6F1E4;
-  --ok:#1E8E5A;--oksoft:#E5F5EC;--no:#C2412D;--nosoft:#FBEAE6;--shadow:0 6px 24px rgba(18,62,107,.08);
-  --pa:#123E6B;--pd:#123E6B;--ps:#E8F4F3;
+  --bg:#F6F3EE;--card:#FFFFFF;--ink:#231B16;--body:#4A3F38;--mute:#8A7E75;
+  --brand:#A8552D;--brand2:#2F2621;--bsoft:#F6E7DD;--sage:#5F7F66;--stitch:#D9C3B0;--line:#E6DED4;--th:#F1ECE5;
+  --ok:#2F7D4F;--oksoft:#E4F2E8;--no:#B4402A;--nosoft:#F8E5DF;--shadow:0 8px 28px rgba(47,38,33,.08);
+  --pa:#A8552D;--pd:#2F2621;--ps:#F6E7DD;
   color-scheme:light;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0F1722;--card:#17212E;--ink:#F2EDE1;--body:#C9CFD6;--mute:#8F98A3;
-  --navy:#8DBBEA;--gold:#E2B64A;--gsoft:#3A3015;--teal:#4CC3CF;--soft:#14313A;--line:#2C3A4A;--th:#1E2A38;
-  --ok:#4CC38A;--oksoft:#143326;--no:#F07A64;--nosoft:#3A1F1A;--shadow:0 6px 24px rgba(0,0,0,.3);
+  --bg:#1A1512;--card:#241D18;--ink:#F3ECE4;--body:#CFC4BA;--mute:#9A8E84;
+  --brand:#E08A5C;--brand2:#F3ECE4;--bsoft:#3A251A;--sage:#8FB497;--stitch:#4A3A2F;--line:#3A2F28;--th:#2C241E;
+  --ok:#5CC08A;--oksoft:#163222;--no:#F08A70;--nosoft:#3A1F18;--shadow:0 8px 28px rgba(0,0,0,.35);
   color-scheme:dark;}}
 :root[data-theme="dark"]{
-  --bg:#0F1722;--card:#17212E;--ink:#F2EDE1;--body:#C9CFD6;--mute:#8F98A3;
-  --navy:#8DBBEA;--gold:#E2B64A;--gsoft:#3A3015;--teal:#4CC3CF;--soft:#14313A;--line:#2C3A4A;--th:#1E2A38;
-  --ok:#4CC38A;--oksoft:#143326;--no:#F07A64;--nosoft:#3A1F1A;--shadow:0 6px 24px rgba(0,0,0,.3);
+  --bg:#1A1512;--card:#241D18;--ink:#F3ECE4;--body:#CFC4BA;--mute:#9A8E84;
+  --brand:#E08A5C;--brand2:#F3ECE4;--bsoft:#3A251A;--sage:#8FB497;--stitch:#4A3A2F;--line:#3A2F28;--th:#2C241E;
+  --ok:#5CC08A;--oksoft:#163222;--no:#F08A70;--nosoft:#3A1F18;--shadow:0 8px 28px rgba(0,0,0,.35);
   color-scheme:dark;}
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--body);font-family:"Amiri","Traditional Arabic","Times New Roman",serif;font-size:19px;line-height:1.85}
+body{margin:0;background:var(--bg);color:var(--body);font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;font-size:18px;line-height:1.8}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--card)}
 a{color:inherit}
 button{font:inherit;cursor:pointer}
 img{max-width:100%}
-h1,h2,h3{color:var(--ink);line-height:1.35;margin:0}
+h1,h2,h3{color:var(--ink);line-height:1.35;margin:0;font-family:"Reem Kufi","IBM Plex Sans Arabic",sans-serif;font-weight:600}
+.brand b{font-family:"Reem Kufi","IBM Plex Sans Arabic",sans-serif}
 .wrap{max-width:1120px;margin:0 auto;padding:0 18px}
 
 /* الرأس */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border-bottom:1px solid var(--line)}
 .top .wrap{display:flex;align-items:center;gap:18px;height:66px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand svg{width:38px;height:38px}
-.brand b{font-size:28px;color:var(--navy);line-height:1}
+.brand svg{width:40px;height:40px;color:var(--brand2)}
+.brand b{font-size:28px;color:var(--brand2);line-height:1}
 .brand small{display:block;font-size:13px;color:var(--mute);line-height:1.2}
 .nav{display:flex;gap:4px;margin-inline-start:auto}
 .nav a{text-decoration:none;font-weight:700;font-size:17px;color:var(--body);padding:6px 14px;border-radius:999px}
-.nav a.on{background:var(--navy);color:var(--card)}
+.nav a.on{background:var(--bsoft);color:var(--brand)}
 .who{display:flex;align-items:center;gap:8px}
-.av{width:38px;height:38px;border-radius:50%;background:var(--gold);color:#1F2A37;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+.av{width:38px;height:38px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
 
 /* الأزرار */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:9px 20px;font-weight:700;font-size:18px;text-decoration:none;line-height:1.4}
 .btn.p{background:var(--pa);color:#fff}
-.btn.g{background:var(--gold);color:#1F2A37}
+.btn.g{background:var(--brand);color:#fff}
 .btn.s{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
 .btn.l{background:transparent;color:var(--pa);padding:6px 10px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -60,6 +61,13 @@ h1,h2,h3{color:var(--ink);line-height:1.35;margin:0}
 
 /* بطاقات عامة */
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+.stitch{outline:1.5px dashed var(--stitch);outline-offset:-8px}
+.group{display:flex;align-items:center;gap:12px;margin:0 0 14px;flex-wrap:wrap}
+.group .gl{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:4px 14px;font-weight:700;background:var(--th);color:var(--ink)}
+.group .gl i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.group p{margin:0;color:var(--mute)}
+.howi{width:44px;height:44px;border-radius:12px;background:var(--bsoft);color:var(--brand);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.howi svg{width:24px;height:24px}
 .pad{padding:22px}
 .muted{color:var(--mute)}
 .pill{display:inline-block;font-size:14px;font-weight:700;border-radius:999px;padding:1px 12px;background:var(--ps);color:var(--pa)}
@@ -68,10 +76,10 @@ h1,h2,h3{color:var(--ink);line-height:1.35;margin:0}
 
 /* الرئيسية */
 .hero{padding:44px 0 18px;display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:center}
-.hero h1{font-size:50px;line-height:1.25}
+.hero h1{font-size:48px;line-height:1.3}
 .hero p{font-size:21px;margin:12px 0 22px;max-width:34em}
-.hero .road{position:relative;height:230px}
-.hero .road svg{width:100%;height:100%}
+.hero .art{position:relative}
+.hero .art svg{width:100%;height:auto;display:block}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:20px}
 .pk{overflow:hidden;display:flex;flex-direction:column;text-decoration:none}
 .pk .cv{aspect-ratio:16/9;background:var(--pd);position:relative;display:flex;align-items:center;justify-content:center}
@@ -181,7 +189,7 @@ label.f{display:block;font-weight:700;color:var(--ink);margin:12px 0 4px}
 .res{margin-top:14px;padding:14px 16px;border-radius:14px;font-weight:700}
 .res.ok{background:var(--oksoft);color:var(--ok)}
 .res.no{background:var(--nosoft);color:var(--no)}
-.done-card{padding:24px;text-align:center;margin-top:14px;border:2px solid var(--gold);background:var(--gsoft)}
+.done-card{padding:24px;text-align:center;margin-top:14px;border:2px solid var(--brand);background:var(--bsoft)}
 .done-card h2{font-size:28px}
 
 /* الشهادة */
@@ -209,7 +217,7 @@ th{color:var(--mute);font-weight:700;font-size:15px;background:var(--th)}
 td .bar{width:120px;margin:0}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chips button{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:2px 14px;font-size:16px}
-.chips button.on{background:var(--navy);border-color:var(--navy);color:var(--card)}
+.chips button.on{background:var(--brand);border-color:var(--brand);color:#fff}
 .set{display:grid;grid-template-columns:1fr auto;gap:10px 18px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .set:last-child{border-bottom:0}
 .set b{color:var(--ink)}
@@ -229,7 +237,7 @@ td .bar{width:120px;margin:0}
 @media (max-width:860px){
   .hero{grid-template-columns:1fr;padding-top:26px}
   .hero h1{font-size:38px}
-  .hero .road{display:none}
+  .hero .art{max-width:300px;margin:0 auto;order:-1}
   .lp{grid-template-columns:1fr}
   .buy{position:static;order:-1}
   .lp h1{font-size:34px}
@@ -247,7 +255,7 @@ td .bar{width:120px;margin:0}
   .bnav{display:flex;position:fixed;bottom:0;inset-inline:0;z-index:25;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
   .bnav a{flex:1;text-align:center;text-decoration:none;font-size:14px;font-weight:700;color:var(--mute);display:flex;flex-direction:column;align-items:center;line-height:1.4}
   .bnav a svg{width:24px;height:24px}
-  .bnav a.on{color:var(--navy)}
+  .bnav a.on{color:var(--brand)}
   body{padding-bottom:70px}
   .demo{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
   .uh h2{font-size:25px}
@@ -257,8 +265,8 @@ td .bar{width:120px;margin:0}
 <body>
 <header class="top"><div class="wrap">
   <a class="brand" href="#/">
-    <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#123E6B"/><circle cx="33" cy="15" r="6" fill="#E2B64A"/><path d="M8 40 C 18 34, 16 26, 26 24 S 36 20, 33 15" fill="none" stroke="#E2B64A" stroke-width="3.2" stroke-linecap="round"/></svg>
-    <span><b>مسار</b><small>منصة الحقائب التدريبية</small></span>
+    <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 13v-3a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><rect x="4" y="13" width="40" height="29" rx="7" fill="#A8552D"/><rect x="8" y="17" width="32" height="21" rx="4" fill="none" stroke="#F6E7DD" stroke-width="1.4" stroke-dasharray="2.5 2.5"/><path d="M4 25h40" stroke="#2F2621" stroke-width="2" opacity=".35"/><rect x="20" y="22" width="8" height="7" rx="2" fill="#F6E7DD"/></svg>
+    <span><b>الحقيبة</b><small>منصة الحقائب التدريبية</small></span>
   </a>
   <nav class="nav" id="nav"></nav>
   <div class="who" id="who"></div>
@@ -273,8 +281,11 @@ const IMG = { cover: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAo
 const QUIZ = [[{"q": "ما أول خطوة قبل أن تفتح أي أداة لصنع فيديو؟", "o": ["إكمال بطاقة الفيديو", "اختيار الأداة الأكثر شهرة", "كتابة النص مباشرة", "تجربة عدة أدوات للمقارنة"], "a": 0}, {"q": "غرضك «شرح خطوات برنامج حاسوبي». ما الشكل الأنسب غالبًا؟", "o": ["تسجيل الشاشة", "مشاهد مولّدة بالذكاء الاصطناعي", "رسم باليد", "رسوم متحركة"], "a": 0}, {"q": "تريد فيديو مدته دقيقة واحدة. كم كلمة تقريبًا تكتب في النص؟", "o": ["نحو 110 كلمات", "نحو 40 كلمة", "نحو 300 كلمة", "نحو 500 كلمة"], "a": 0}, {"q": "سيُشاهَد الفيديو الخاص بك غالبًا على الهاتف في واتساب. أي إطار تختار؟", "o": ["عمودي 9:16", "أفقي 16:9", "مربع دائمًا", "لا فرق بين الأطر"], "a": 0}, {"q": "لماذا يُنصح باتباع الخطوات بالترتيب عند استخدام الأدوات المدفوعة؟", "o": ["لأن كل إعادة توليد تُحسب تكلفة جديدة", "لأن الأدوات تمنع إعادة التوليد", "لأن الترتيب يرفع الجودة تلقائيًا", "لا يوجد فرق في التكلفة"], "a": 0}], [{"q": "أي جملة أنسب لنص فيديو مسموع؟", "o": ["«تريد فيديو لمشروعك؟ في ست خطوات تصنعه بنفسك.»", "«نقدّم لكم دورة متميزة باستخدام أحدث التقنيات لتحقيق أهدافكم.»", "«إن صناعة المحتوى المرئي في عصرنا الحالي باتت ضرورة ملحّة لكل من يسعى للتميز.»", "«سوف نتناول في هذا الفيديو مجموعة من المحاور المهمة والمتنوعة.»"], "a": 0}, {"q": "إعلان مدته 30 ثانية. كم كلمة تقريبًا يكون نصه؟", "o": ["نحو 55 كلمة", "نحو 20 كلمة", "نحو 110 كلمات", "نحو 200 كلمة"], "a": 0}, {"q": "ما القاعدة الأساسية في جدول المشاهد؟", "o": ["لا يظهر على الشاشة إلا ما يقوله الصوت، لحظة ذكره", "تظهر كل عناصر البطاقة دفعة واحدة في بدايتها", "الشاشة تعرض تفاصيل أكثر مما يقوله الصوت", "يُكتب الجدول بعد إنتاج الفيديو"], "a": 0}, {"q": "كيف تكتب كلمة «فيديو» في نسخة الصوت؟", "o": ["بلا تشكيل", "بتشكيل كل حروفها", "بحروف إنجليزية", "تُحذف من النص"], "a": 0}, {"q": "أخطأت أداة الصوت في نطق كلمة مرتين. ما الأفضل؟", "o": ["تغيير الكلمة بمرادف", "إعادة التوليد حتى تنطقها صحيحًا", "ترك الخطأ كما هو", "رفع سرعة الصوت"], "a": 0}], [{"q": "فيديو تعريفي يظهر فيه وجهك واسمك. أي صوت أنسب؟", "o": ["صوتك، لأن المشاهد يتوقع أن يسمعك", "صوت مولّد، لأنه أوضح دائمًا", "دبلجة، لتصل إلى جمهور أوسع", "بلا تعليق، لأن الصورة تكفي"], "a": 0}, {"q": "ستسجّل بهاتفك. أي مكان أفضل؟", "o": ["غرفة فيها أثاث وستائر", "غرفة فارغة واسعة", "حمّام مغلق لأنه هادئ", "شرفة مفتوحة"], "a": 0}, {"q": "لماذا تولّد الصوت جملة جملة لا النص كله مرة واحدة؟", "o": ["لأن الخطأ في جملة يكلّفك جملة واحدة، وتعرف توقيت كل جملة بدقة", "لأن الأدوات لا تقبل نصًا طويلًا", "لأن الصوت يصبح أسرع", "لأن التوليد الكامل أغلى دائمًا بعشرة أضعاف"], "a": 0}, {"q": "ملف صوتك أطول من مدة بطاقتك بكثير. ماذا تفعل؟", "o": ["تختصر النص", "تسرّع الصوت", "تقص نهاية الملف", "تترك الفيديو أطول دون مراجعة"], "a": 0}, {"q": "ولّدت صوتًا بالخطة المجانية لأداة صوت، وتريد نشره لعملك. ما أول ما تتحقق منه؟", "o": ["شروط الاستخدام التجاري في الأداة", "جودة الصوت فقط", "عدد المشتركين في قناتك", "لا شيء، فالمجاني متاح لكل استخدام"], "a": 0}], [{"q": "تريد شرح خطوات استخدام برنامج على الحاسوب. أي شكل أنسب؟", "o": ["تسجيل الشاشة", "مشاهد مولّدة", "رسوم متحركة احترافية", "مونتاج لقطات"], "a": 0}, {"q": "ما القاعدة الصحيحة لاختيار شكل الصورة؟", "o": ["الغرض المكتوب في بطاقتك يختار الشكل، ثم تختار الأداة", "اختر أحدث أداة أولًا، ثم الشكل الذي تقدمه", "اختر الشكل الأغلى لأنه الأجود دائمًا", "اختر الشكل الذي يستخدمه أغلب صناع المحتوى"], "a": 0}, {"q": "أداة أفاتار سعرها 0.05 دولار للثانية، ومدة صوتك 60 ثانية. كم التكلفة التقريبية لتوليد واحد؟", "o": ["نحو 3 دولارات", "نحو 0.3 دولار", "نحو 30 دولارًا", "مجاني لأن الصوت جاهز"], "a": 0}, {"q": "ستصنع حوارًا بين شخصيتين بالأفاتار. ما الطريقة الأكثر أمانًا؟", "o": ["لقطة كاملة لكل متكلم بالتناوب، بعد تجربة قصيرة", "الشخصيتان في إطار واحد، والنص كله في توليد واحد", "توليد الحوار كله مرة واحدة ثم المراجعة", "أي طريقة، فكل الأدوات تتقن الحوار"], "a": 0}, {"q": "ستظهر أمام الكاميرا بهاتفك. أين تضع النافذة؟", "o": ["أمامك أو بجانبك", "خلفك مباشرة", "فوقك", "لا يهم مكان الضوء"], "a": 0}], [{"q": "بدأت المونتاج. ما الذي تضعه على الخط الزمني أولًا؟", "o": ["الصوت، ثم تُقص المشاهد عليه", "المشاهد، ثم يُقص الصوت ليناسبها", "الموسيقى، ثم الكلام فوقها", "الترجمة النصية، ثم المشاهد"], "a": 0}, {"q": "بطاقتك لدرس تعليمي لا تذكر موسيقى ولا مؤثرات. ماذا تفعل؟", "o": ["لا تضيفهما: أضف ما في بطاقتك فقط", "أضف موسيقى هادئة لأن كل فيديو يحتاجها", "أضف مؤثرًا مع كل مشهد ليبقى المشاهد منتبهًا", "أضف الإضافات الست كلها ليبدو الفيديو احترافيًا"], "a": 0}, {"q": "وجدت مقطوعة جميلة على الإنترنت بلا ترخيص واضح. ما الخطر الأرجح إن استخدمتها على يوتيوب؟", "o": ["مطالبة حقوق، أو كتم الصوت، أو حجب الفيديو", "لا خطر ما دام الفيديو غير مدرج", "لا خطر إن ذكرت اسم المؤلف في الوصف", "لا خطر إن استخدمت أقل من 30 ثانية منها"], "a": 0}, {"q": "تريد نسخة عمودية من الفيديو الأفقي الخاص بك. ما الطريقة الصحيحة؟", "o": ["مشروع عمودي جديد تعيد فيه ترتيب العناصر، والنص المهم بعيد عن الأطراف", "قص الفيديو الأفقي من الجانبين مباشرة", "تصغير الفيديو الأفقي داخل إطار عمودي بلا تعديل", "تدوير الفيديو الأفقي 90 درجة"], "a": 0}, {"q": "فيديو فيه مقطع أفاتار مدفوع. ما الترتيب الأوفر؟", "o": ["مسودة كاملة بصورة ثابتة مكان الأفاتار، ثم المراجعة، ثم توليد التحريك مرة واحدة", "توليد الأفاتار أولًا، ثم كتابة النص عليه", "توليد الأفاتار ومراجعته بعد تركيب الفيديو، وإعادة التوليد عند أي خطأ", "توليد الفيديو كله مرة واحدة، ثم تصحيح الأخطاء في المونتاج"], "a": 0}], [{"q": "أنهيت المونتاج على الحاسوب. ما الفحص الأهم قبل النشر؟", "o": ["مشاهدته كاملًا على الهاتف، بسماعة ثم بلا صوت", "مشاهدته مرة أخرى على الحاسوب بشاشة أكبر", "التأكد من حجم الملف فقط", "لا فحص، فالمونتاج كان دقيقًا"], "a": 0}, {"q": "أي عنوان أفضل لدرس عن صناعة الفيديو التعليمي؟", "o": ["«اصنع فيديو تعليميًا في ست خطوات | مسار الفيديو»", "«فيديو جديد، الحلقة الثانية»", "«مسار الفيديو 2»", "«شاهد هذا الفيديو المهم جدًا حتى النهاية»"], "a": 0}, {"q": "كتبت الفصول في الوصف هكذا: 0:15 المقدمة، 1:00 الخطوات، 2:00 الخاتمة. لماذا لن تظهر؟", "o": ["لأن الفصل الأول يجب أن يبدأ من 0:00", "لأن الفصول تُكتب في التعليقات لا في الوصف", "لأن ثلاثة فصول أكثر من المسموح", "لأن الفصول تظهر في الفيديوهات العامة فقط"], "a": 0}, {"q": "في الفيديو الخاص بك أفاتار واقعي المظهر. ماذا تفعل عند الرفع على يوتيوب؟", "o": ["تفعّل الإفصاح عن المحتوى المعدّل أو المولّد، وتذكره في الوصف", "لا شيء، فالإفصاح مطلوب للأخبار فقط", "تكتب ذلك في التعليقات بعد النشر", "تخفي ذلك حتى لا تقل المشاهدات"], "a": 0}, {"q": "ما الترتيب الصحيح للنشر؟", "o": ["غير مدرج، ثم المشاهدة من الرابط على الهاتف، ثم عام", "عام مباشرة، ثم تصحيح الأخطاء من التعليقات", "خاص، ثم حذفه وإعادة رفعه عامًا", "عام، ثم إضافة العنوان والوصف لاحقًا"], "a": 0}]];
 const TEXT1 = ["الوحدة الأولى من حقيبة «مسار الفيديو» عنوانها «بطاقة الفيديو». فكرتها: لا تبدأ بالأداة، بل ببطاقة من سبعة أسئلة تحدد فيها فيديوك قبل أي تنفيذ.", "الأسئلة السبعة: (1) الغرض: لماذا هذا الفيديو؟ درس، إعلان، محتوى قصير للتواصل، تعريف بجهة، شرح برنامج، مقابلة، قصة، ملخص فعالية، شهادة عميل، تهنئة. (2) الجمهور: من سيشاهده وماذا يعرف مسبقًا. (3) الرسالة الواحدة: الفكرة الوحيدة التي يخرج بها المشاهد. (4) الشكل: شرائح مع صوت، أفاتار، أمام الكاميرا، تسجيل الشاشة، رسم باليد، رسوم متحركة، مشاهد مولّدة، صور متحركة، مونتاج لقطات، ترجمة أو دبلجة. (5) الصوت: صوتك، مولّد، دبلجة، بلا تعليق. (6) الإضافات: ترجمة نصية، موسيقى مرخّصة، شعار، نسخة عمودية، صورة مصغرة، عنوان ووصف. (7) القيود: المدة، الميزانية، الجهاز، الخصوصية، الحقوق.", "دليل اختيار الشكل: الدرس يناسبه الشرائح أو تسجيل الشاشة؛ الإعلان المشاهد المولّدة أو الرسوم المتحركة أو أفاتار قصير؛ المحتوى القصير أمام الكاميرا أو أفاتار عمودي؛ شرح البرنامج تسجيل الشاشة؛ المقابلة وشهادة العميل أمام الكاميرا؛ ملخص الفعالية مونتاج لقطات.", "المدة: الإعلان 15 إلى 30 ثانية، المحتوى القصير 30 إلى 60 ثانية، التعريف بجهة 60 إلى 90 ثانية، الدرس 2 إلى 5 دقائق. قاعدة مقاسة على صوتنا: الدقيقة نحو 110 كلمات من الكلام العربي، فعدد الكلمات ≈ المدة بالثواني × 1.8."];
 
+const GROUPS = [
+  { id:"masar", name:"مسار", desc:"حقائب عملية في استعمال الذكاء الاصطناعي", dot:"#123E6B" }
+];
 const PK = [
-  { slug:"video", name:"مسار الفيديو", tagline:"أنتج الفيديو الخاص بك بالذكاء الاصطناعي",
+  { slug:"video", group:"masar", name:"مسار الفيديو", tagline:"أنتج الفيديو الخاص بك بالذكاء الاصطناعي",
     promise:"من بطاقة تحدد فيها غرض الفيديو، إلى فيديو منشور على يوتيوب بالشكل الذي تختاره من عشرة أشكال.",
     price:"25 دولارًا", hours:"نحو 4 ساعات", access:"paid", a:"#D62828", d:"#1B1B2F", s:"#FFF1F1", cover:true,
     gets:["6 فيديوهات قصيرة بمقدّم","6 ملفات بأوراق عمل قابلة للكتابة","برومبت جاهز وأدوات مع بديل مجاني لكل مرحلة","امتحان قصير لكل وحدة","شهادة إتمام باسمك ورقم تحقق"],
@@ -286,7 +297,7 @@ const PK = [
       {n:5,title:"المونتاج والإضافات",q:"كيف أجمع كل شيء، وماذا أضيف؟",out:"فيديو كامل مصدَّر ومجلد مشروع",m:"8:30"},
       {n:6,title:"التحقق والنشر",q:"هل هو جاهز، وكيف أنشره، وهل نجح؟",out:"فيديو منشور وبطاقة قرار",m:"7:20"}
     ]},
-  { slug:"free", name:"مسار الذكاء الاصطناعي", tagline:"من التشتت إلى قرار وتنفيذ ذكي",
+  { slug:"free", group:"masar", name:"مسار الذكاء الاصطناعي", tagline:"من التشتت إلى قرار وتنفيذ ذكي",
     promise:"كيف تختار الأداة المناسبة لأي مهمة، وتكتب تعليمات تعطيك نتيجة تتحقق منها، بتطبيق على مهمتك الحقيقية.",
     price:"مجانية", hours:"خمس وحدات", access:"free", a:"#0E7C8C", d:"#123E6B", s:"#E8F4F3", cover:false, soon:true,
     gets:["5 فيديوهات قصيرة","5 ملفات للوحدات","كراسة أدوات العمل التفاعلية","امتحان لكل وحدة","شهادة إتمام"],
@@ -303,8 +314,8 @@ const ORD = ["الأولى","الثانية","الثالثة","الرابعة","
 /* الحالة: في المنصة الفعلية تأتي من الخادم، وهنا تُحفظ في المتصفح للتجربة فقط */
 const DEF = () => ({ user:null, enroll:{}, prog:{}, att:{}, certs:{}, settings:{ attempts:3, pass:80, shuffle:true }, granted:[] });
 let S;
-try { S = Object.assign(DEF(), JSON.parse(localStorage.getItem("masar-proto") || "null") || {}); } catch(e) { S = DEF(); }
-function save(){ try { localStorage.setItem("masar-proto", JSON.stringify(S)); } catch(e) {} }
+try { S = Object.assign(DEF(), JSON.parse(localStorage.getItem("haqiba-proto") || "null") || {}); } catch(e) { S = DEF(); }
+function save(){ try { localStorage.setItem("haqiba-proto", JSON.stringify(S)); } catch(e) {} }
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -332,14 +343,13 @@ function chrome(route){
   const links = [["#/", "الحقائب", I.home, route === "" || route === "p"], ["#/my", "حقائبي", I.bag, route === "my" || route === "learn" || route === "cert"], ["#/admin", "لوحة المدرب", I.chart, route === "admin"]];
   $("#nav").innerHTML = links.map(l => `<a href="${l[0]}" class="${l[3] ? "on" : ""}">${l[1]}</a>`).join("");
   $("#bnav").innerHTML = links.map(l => `<a href="${l[0]}" class="${l[3] ? "on" : ""}">${l[2]}${l[1]}</a>`).join("");
-  $("#who").innerHTML = S.user ? `<span class="av" title="${esc(S.user.name)}">${esc(S.user.name.trim()[0] || "م")}</span>` : `<a class="btn s" href="#/login" style="padding:5px 14px;font-size:16px">دخول</a>`;
+  $("#who").innerHTML = S.user ? `<span class="av" title="${esc(S.user.name)}">${esc(S.user.name.trim()[0] || "ح")}</span>` : `<a class="btn s" href="#/login" style="padding:5px 14px;font-size:16px">دخول</a>`;
 }
-function foot(){ return `<footer class="foot"><div class="wrap">مسار · منصة الحقائب التدريبية · نموذج أولي للمراجعة</div></footer>`; }
+function foot(){ return `<footer class="foot"><div class="wrap">الحقيبة · منصة الحقائب التدريبية · نموذج أولي للمراجعة</div></footer>`; }
 
 /* الرئيسية */
-function vHome(){
-  const cards = PK.map(p => `
-    <a class="card pk" href="#/p/${p.slug}" style="${theme(p)}">
+function pkCard(p){
+  return `<a class="card pk stitch" href="#/p/${p.slug}" style="${theme(p)}">
       <div class="cv">${p.cover ? `<img src="${IMG.cover}" alt="">` : `<div class="gen"><b>${p.name}</b>${p.tagline}</div>`}</div>
       <div class="in">
         <span class="pill">${p.soon ? "تُنقل قريبًا" : p.access === "free" ? "مجانية" : "حقيبة مدفوعة"}</span>
@@ -347,27 +357,41 @@ function vHome(){
         <div>${p.tagline}</div>
         <div class="meta muted"><span>${p.units.length} وحدات</span><span>·</span><span>${p.hours}</span><span class="price">${p.price}</span></div>
       </div>
-    </a>`).join("");
+    </a>`;
+}
+function vHome(){
+  const groups = GROUPS.map(g => `
+    <div class="group"><span class="gl"><i style="background:${g.dot}"></i>مجموعة ${g.name}</span><p>${g.desc}</p></div>
+    <div class="grid">${PK.filter(p => p.group === g.id).map(pkCard).join("")}</div>`).join("");
+  const how = [
+    [I.bag,"حقيبة واحدة، هدف واحد","كل حقيبة تنتهي بشيء تنجزه بيدك، لا بمعلومات تحفظها."],
+    [I.quiz,"وحدة تفتح الأخرى","تنتقل إلى الوحدة التالية حين تجتاز امتحان الوحدة الحالية."],
+    [I.file,"كل شيء في مكانه","الفيديو والملف والامتحان تفتح هنا، على الهاتف والحاسوب."],
+    [I.chart,"تقدّمك محفوظ، وشهادتك فورية","تكمل من حيث توقفت، وتصدر شهادتك باسمك لحظة الإنهاء."]
+  ].map(h => `<div class="card"><div class="howi">${h[0]}</div><b>${h[1]}</b>${h[2]}</div>`).join("");
   return `
   <div class="wrap">
     <section class="hero">
       <div>
-        <h1>حقائب قصيرة، تخرج منها بشيء تنجزه فعلًا</h1>
-        <p>كل حقيبة طريق واضح من سؤال إلى مُخرَج: فيديو قصير لكل وحدة، وورقة عمل تكتب فيها، وامتحان يثبت فهمك، وشهادة باسمك.</p>
-        <a class="btn g" href="#/p/video">ابدأ بحقيبة الفيديو</a>
+        <h1>افتح الحقيبة، واخرج منها بمهارة تستعملها</h1>
+        <p>حقائب تدريبية قصيرة: فيديو لكل وحدة، وورقة عمل تكتب فيها، وامتحان يثبت فهمك، وشهادة باسمك.</p>
+        <a class="btn g" href="#bags">تصفّح الحقائب</a>
         <a class="btn s" href="#/my" style="margin-inline-start:8px">حقائبي</a>
       </div>
-      <div class="road"><svg viewBox="0 0 320 230" aria-hidden="true"><circle cx="250" cy="52" r="30" fill="#E2B64A" opacity=".9"/><path d="M20 220 C 90 190, 70 140, 150 128 S 260 100, 250 52" fill="none" stroke="#C9971F" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 22"/><path d="M20 220 C 90 190, 70 140, 150 128 S 260 100, 250 52" fill="none" stroke="#123E6B" stroke-width="3" opacity=".25"/><g fill="#123E6B"><circle cx="58" cy="198" r="9"/><circle cx="118" cy="145" r="9"/><circle cx="196" cy="118" r="9"/></g></svg></div>
+      <div class="art"><svg viewBox="0 0 320 250" aria-hidden="true">
+        <rect x="70" y="46" width="70" height="92" rx="8" fill="#5F7F66" transform="rotate(-10 105 92)"/>
+        <rect x="128" y="34" width="70" height="92" rx="8" fill="#F1ECE5" stroke="#D9C3B0" stroke-width="2"/>
+        <path d="M142 58h42M142 72h42M142 86h28" stroke="#A8552D" stroke-width="5" stroke-linecap="round"/>
+        <rect x="186" y="50" width="70" height="92" rx="8" fill="#2F2621" transform="rotate(9 221 96)"/>
+        <path d="M212 88l12 10 18-22" stroke="#F6E7DD" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="rotate(9 221 96)"/>
+        <rect x="30" y="112" width="260" height="128" rx="22" fill="#A8552D"/>
+        <rect x="42" y="124" width="236" height="104" rx="14" fill="none" stroke="#F6E7DD" stroke-width="2" stroke-dasharray="6 6" opacity=".8"/>
+        <path d="M30 160h260" stroke="#2F2621" stroke-width="3" opacity=".3"/>
+        <rect x="142" y="148" width="36" height="26" rx="6" fill="#F6E7DD"/><rect x="154" y="156" width="12" height="10" rx="2" fill="#A8552D"/>
+      </svg></div>
     </section>
-    <section class="sec"><h2>الحقائب</h2><div class="grid">${cards}</div></section>
-    <section class="sec"><h2>كيف تعمل الحقيبة</h2>
-      <div class="why">
-        <div class="card"><b>وحدة بعد وحدة</b>تنتقل إلى الوحدة التالية حين تجتاز امتحان الوحدة الحالية.</div>
-        <div class="card"><b>كل شيء هنا</b>الفيديو والملف والامتحان تفتح داخل المنصة، على الهاتف والحاسوب.</div>
-        <div class="card"><b>تقدّمك محفوظ</b>تكمل من حيث توقفت، من أي جهاز.</div>
-        <div class="card"><b>شهادة فورية</b>تُصدر باسمك لحظة إنهاء الحقيبة، ومعها رقم تحقق.</div>
-      </div>
-    </section>
+    <section class="sec" id="bags"><h2>الحقائب</h2>${groups}</section>
+    <section class="sec"><h2>كيف تعمل الحقيبة</h2><div class="why">${how}</div></section>
   </div>${foot()}`;
 }
 
@@ -380,7 +404,7 @@ function vLanding(slug){
   else if (has) cta = `<a class="btn p" href="#/learn/${slug}">${done(slug).length ? "أكمل من حيث توقفت" : "ابدأ الحقيبة"}</a>`;
   else if (!S.user) cta = `<a class="btn p" href="#/login?next=p/${slug}">سجّل الدخول للبدء</a>`;
   else cta = `<button class="btn p" data-act="buy">اشترِ الحقيبة</button><button class="btn s" data-act="code">عندي كود وصول</button>
-    <div class="codebox" id="codebox"><input type="text" id="code" placeholder="مثال: MSR-4821" dir="ltr"><button class="btn g" data-act="redeem">تفعيل</button></div>`;
+    <div class="codebox" id="codebox"><input type="text" id="code" placeholder="مثال: HQB-4821" dir="ltr"><button class="btn g" data-act="redeem">تفعيل</button></div>`;
   return `<div style="${theme(p)}"><div class="wrap"><section class="lp">
     <div>
       <span class="pill">${p.units.length} وحدات · ${p.hours}</span>
@@ -392,7 +416,7 @@ function vLanding(slug){
         <div class="card u"><span class="num">${u.n}</span><div><b>${u.title}</b><small>السؤال: ${u.q}</small><small>تخرج بـ: ${u.out}</small></div></div>`).join("")}</div></div>
       ${p.cover ? `<div class="sec"><h2>شهادتك</h2><img class="certprev" src="${IMG.cert}" alt="نموذج الشهادة"><p class="muted">تُصدر تلقائيًا باسمك وتاريخ الإنهاء ورقم تحقق.</p></div>` : ""}
     </div>
-    <aside class="card buy">
+    <aside class="card buy stitch">
       <div class="cv">${p.cover ? `<img src="${IMG.cover}" alt="">` : `<div class="vid" style="border-radius:0"><b style="font-size:28px">${p.name}</b></div>`}</div>
       <div class="in">
         <div class="pr">${p.price}</div>
@@ -417,12 +441,12 @@ function bindLanding(slug){
 
 /* الدخول */
 function vLogin(){
-  return `<div class="wrap"><div class="card auth" id="auth">
-    <h1>الدخول إلى مسار</h1>
+  return `<div class="wrap"><div class="card auth stitch" id="auth">
+    <h1>الدخول إلى الحقيبة</h1>
     <p class="muted">بلا كلمة مرور: نرسل رمزًا من ستة أرقام إلى بريدك.</p>
     <label class="f" for="em">البريد الإلكتروني</label>
     <input type="email" id="em" dir="ltr" placeholder="name@example.com">
-    <button class="btn p" id="send" style="width:100%;margin-top:14px;--pa:#123E6B">أرسل رمز الدخول</button>
+    <button class="btn p" id="send" style="width:100%;margin-top:14px;--pa:var(--brand)">أرسل رمز الدخول</button>
   </div></div>`;
 }
 function bindLogin(){
@@ -433,7 +457,7 @@ function bindLogin(){
     $("#auth").innerHTML = `<h1>أدخل الرمز</h1><p class="muted">أرسلنا رمزًا إلى <span dir="ltr">${esc(em)}</span>. في هذا النموذج اكتب أي ستة أرقام.</p>
       <div class="otp">${Array.from({length:6}, () => `<input type="text" inputmode="numeric" maxlength="1">`).join("")}</div>
       <label class="f" for="nm">اسمك كما يظهر في الشهادة</label><input type="text" id="nm" placeholder="الاسم الكامل">
-      <button class="btn p" id="go" style="width:100%;margin-top:14px;--pa:#123E6B">دخول</button>`;
+      <button class="btn p" id="go" style="width:100%;margin-top:14px;--pa:var(--brand)">دخول</button>`;
     const boxes = [...document.querySelectorAll(".otp input")];
     boxes[0].focus();
     boxes.forEach((b, i) => b.oninput = () => { b.value = b.value.replace(/\D/g, ""); if (b.value && boxes[i+1]) boxes[i+1].focus(); });
@@ -578,7 +602,7 @@ function bindLearn(slug){
 /* الشهادة */
 function issueCert(p){
   if (S.certs[p.slug]) return;
-  const code = "MSR-" + Math.random().toString(36).slice(2, 6).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+  const code = "HQB-" + Math.random().toString(36).slice(2, 6).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
   S.certs[p.slug] = { code, date: Date.now(), name: S.user.name }; save();
 }
 function vCert(slug){
@@ -611,7 +635,7 @@ function vVerify(code){
   const hit = Object.entries(S.certs).find(([, c]) => c.code === code);
   if (!hit) return `<div class="wrap"><div class="card verify"><div class="seal no">✕</div><h1>رقم غير موجود</h1><p class="muted">تأكد من رقم التحقق المكتوب أسفل الشهادة.</p></div></div>`;
   const [slug, c] = hit, p = pk(slug);
-  return `<div class="wrap"><div class="card verify"><div class="seal ok">✓</div><h1>شهادة صحيحة</h1><p class="muted">هذه الشهادة صادرة من منصة مسار.</p>
+  return `<div class="wrap"><div class="card verify"><div class="seal ok">✓</div><h1>شهادة صحيحة</h1><p class="muted">هذه الشهادة صادرة من منصة الحقيبة.</p>
     <dl class="kv"><dt>الاسم</dt><dd>${esc(c.name)}</dd><dt>الحقيبة</dt><dd>${p.name}</dd><dt>تاريخ الإصدار</dt><dd>${fmtDate(new Date(c.date))}</dd><dt>رقم التحقق</dt><dd><span class="vcode">${c.code}</span></dd></dl></div></div>`;
 }
 
@@ -648,14 +672,14 @@ function vAdmin(){
         <label class="f">عدد الأكواد</label><div class="chips" data-g="n">${[1,5,10,20].map((v, i) => `<button data-v="${v}" class="${i === 1 ? "on" : ""}">${v}</button>`).join("")}</div>
         <label class="f">الاستخدام لكل كود</label><div class="chips" data-g="u">${["مرة واحدة","5 مرات","بلا حد"].map((v, i) => `<button data-v="${v}" class="${i === 0 ? "on" : ""}">${v}</button>`).join("")}</div>
         <label class="f">ينتهي بعد</label><div class="chips" data-g="e">${["أسبوع","شهر","3 أشهر","بلا انتهاء"].map((v, i) => `<button data-v="${v}" class="${i === 1 ? "on" : ""}">${v}</button>`).join("")}</div>
-        <button class="btn p" id="gen" style="margin-top:14px;--pa:#123E6B">ولّد الأكواد</button><div class="codes" id="codes"></div></div></div>`;
+        <button class="btn p" id="gen" style="margin-top:14px;--pa:var(--brand)">ولّد الأكواد</button><div class="codes" id="codes"></div></div></div>`;
   if (AT === "exam") body = `<div class="card pad"><h3>إعدادات امتحانات «مسار الفيديو»</h3><p class="muted">تُطبَّق فورًا على المشغّل. جرّبها ثم افتح الامتحان.</p>
       <div class="set"><div><b>عدد المحاولات</b><div class="muted">بعدها يحتاج المتدرب فتح محاولة من المدرب</div></div><div class="chips" data-s="attempts">${[[1,"1"],[2,"2"],[3,"3"],[5,"5"],[0,"بلا حد"]].map(v => `<button data-v="${v[0]}" class="${S.settings.attempts === v[0] ? "on" : ""}">${v[1]}</button>`).join("")}</div></div>
       <div class="set"><div><b>نسبة النجاح</b></div><div class="chips" data-s="pass">${[60,70,80,90,100].map(v => `<button data-v="${v}" class="${S.settings.pass === v ? "on" : ""}">${v}%</button>`).join("")}</div></div>
       <div class="set"><div><b>خلط الأسئلة والخيارات</b></div><div class="chips" data-s="shuffle">${[[1,"نعم"],[0,"لا"]].map(v => `<button data-v="${v[0]}" class="${+S.settings.shuffle === v[0] ? "on" : ""}">${v[1]}</button>`).join("")}</div></div>
       <div class="set"><div><b>فتح محاولات جديدة لك</b><div class="muted">يصفّر محاولاتك في كل الوحدات</div></div><button class="btn s" id="resetAtt">صفّر المحاولات</button></div></div>`;
   return `<div class="wrap adm"><h1>لوحة المدرب</h1><p class="muted">المتدربون وتقدّمهم، ومنح الوصول، وإعدادات الامتحانات. البيانات هنا أمثلة للعرض.</p>
-    <div class="tabs" id="atabs" style="margin-top:14px;--pa:#123E6B">${tabs.map(t => `<button data-t="${t[0]}" class="${AT === t[0] ? "on" : ""}">${t[1]}</button>`).join("")}</div>${body}</div>${foot()}`;
+    <div class="tabs" id="atabs" style="margin-top:14px;--pa:var(--brand)">${tabs.map(t => `<button data-t="${t[0]}" class="${AT === t[0] ? "on" : ""}">${t[1]}</button>`).join("")}</div>${body}</div>${foot()}`;
 }
 function bindAdmin(){
   document.querySelectorAll("#atabs button").forEach(b => b.onclick = () => { AT = b.dataset.t; render(); });
@@ -668,7 +692,7 @@ function bindAdmin(){
   const gn = $("#gen"); if (gn) gn.onclick = () => {
     const pick = k => $(`.chips[data-g="${k}"] .on`).dataset.v;
     const n = +pick("n"), u = pick("u"), e = pick("e");
-    $("#codes").innerHTML = Array.from({length:n}, () => `<div><span class="vcode">MSR-${Math.floor(1000 + Math.random() * 9000)}</span><small class="muted">${u} · ${e}</small></div>`).join("");
+    $("#codes").innerHTML = Array.from({length:n}, () => `<div><span class="vcode">HQB-${Math.floor(1000 + Math.random() * 9000)}</span><small class="muted">${u} · ${e}</small></div>`).join("");
   };
   const r = $("#resetAtt"); if (r) r.onclick = () => { S.att = {}; save(); toast("صُفّرت المحاولات"); };
 }
@@ -702,7 +726,7 @@ function render(){
   if (after) after();
 }
 let lastRoute = "";
-addEventListener("hashchange", () => { const r = location.hash.split("/").slice(0, 2).join("/"); if (r !== lastRoute) scrollTo(0, 0); lastRoute = r; render(); });
+addEventListener("hashchange", () => { if (location.hash === "#bags") { history.replaceState(null, "", "#/"); render(); const el = document.getElementById("bags"); if (el) el.scrollIntoView({ behavior:"smooth" }); return; } const r = location.hash.split("/").slice(0, 2).join("/"); if (r !== lastRoute) scrollTo(0, 0); lastRoute = r; render(); });
 render();
 </script>
 </body>
