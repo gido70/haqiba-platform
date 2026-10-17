@@ -375,7 +375,8 @@ td .bar{width:120px;margin:0}
 /* منصة الحقيبة · النسخة الحية المتصلة بقاعدة البيانات */
 const SB_URL = "https://nmbbahzzogspuuvpsxud.supabase.co";
 const SB_KEY = "sb_publishable_OHbaA9Rse47v5pw_0Juafg_RbeorWMM"; // مفتاح عام بطبيعته؛ الحماية في قواعد قاعدة البيانات
-const sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+const sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "hq-auth" } });
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
 
 const S = { lang: "ar", user: null, profile: null, groups: [], kits: [], units: {}, state: {}, qcache: {}, ready: false };
 try { S.lang = localStorage.getItem("hq-lang") || "ar"; } catch (e) {}
@@ -445,7 +446,7 @@ async function loadQuestions(unitId){
 }
 async function onSession(session){
   S.user = session ? session.user : null; S.profile = null; S.state = {}; S.qcache = {};
-  if (S.user) { try { S.profile = await rpc("hq_ensure_profile", { p_name: null, p_lang: S.lang }); } catch (e) { console.error(e); } }
+  if (S.user) { try { S.profile = await withTimeout(rpc("hq_ensure_profile", { p_name: null, p_lang: S.lang }), 10000); } catch (e) { console.error(e); } }
 }
 
 /* الرأس */
@@ -863,11 +864,15 @@ addEventListener("hashchange", () => {
 });
 (async () => {
   render();
-  try { await loadCatalog(); } catch (e) { console.error(e); }
-  const { data } = await sb.auth.getSession(); await onSession(data.session);
+  try { await withTimeout(loadCatalog(), 12000); } catch (e) { console.error(e); }
+  try { const { data } = await withTimeout(sb.auth.getSession(), 8000); await onSession(data.session); } catch (e) { console.error(e); await onSession(null); }
   S.ready = true; render();
-  sb.auth.onAuthStateChange(async (ev, session) => {
-    if (ev === "SIGNED_IN" || ev === "SIGNED_OUT") { await onSession(session); if (ev === "SIGNED_IN" && location.hash.startsWith("#/login")) location.hash = "#/" + nextRoute(); else render(); }
+  // لا ننتظر أي طلب داخل مستمع الدخول نفسه (يسبب تجمّد المكتبة)، بل نؤجله
+  let lastUid = S.user && S.user.id;
+  sb.auth.onAuthStateChange((ev, session) => {
+    const uid = session && session.user && session.user.id;
+    if (uid === lastUid) return; lastUid = uid;
+    setTimeout(async () => { await onSession(session); if (uid && location.hash.startsWith("#/login")) location.hash = "#/" + nextRoute(); else render(); }, 0);
   });
 })();
 
