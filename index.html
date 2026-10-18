@@ -713,10 +713,10 @@ async function quiz(k, units, U, improve){
   const el = $("#pane"); el.innerHTML = `<div class="card quiz">${L("جارٍ تحميل الأسئلة…","Loading questions…")}</div>`;
   const st = S.state[k.id], used = +(st.attempts && st.attempts[U.n]) || 0, maxA = U.exam_attempts, isPassed = passed(k.id).includes(U.n);
   const left = maxA === 0 ? L("بلا حد","unlimited") : Math.max(0, maxA - used);
+  const best = st.best && st.best[U.n];
   const head = isPassed ? `<div class="qset"><span>${L("إعادة للتحسين","Improvement retake")}</span>${best != null ? `<span>${L("أفضل نتيجة لك","Your best")}: ${best}%</span>` : ""}</div>`
     : `<div class="qset"><span>${L("نسبة النجاح","Pass mark")} ${U.exam_pass}%</span><span>${L("المحاولات المتبقية","Attempts left")}: ${left}</span></div>`;
   const goNext = () => { PL.tab = "video"; location.hash = "#/learn/" + k.id + "/" + (U.n + 1); };
-  const best = st.best && st.best[U.n];
   if (isPassed && !improve) { el.innerHTML = `<div class="card quiz"><div class="res ok">${L("اجتزت امتحان هذه الوحدة.","You passed this unit’s exam.")}${best != null ? " " + L("أفضل نتيجة لك","Your best score") + ": " + best + "%" : ""}</div>
       <p class="muted" style="margin:10px 0 0">${L("يمكنك إعادة الامتحان للتحسين متى شئت. الإعادة لا تغيّر نجاحك ولا تقدّمك، وتُحفظ أفضل نتيجة.","You can retake the exam to improve at any time. Retakes never undo your pass or progress; your best score is kept.")}</p>
       <div class="qbar"><button class="btn s" id="improve">${I.quiz}${L("أعد الامتحان للتحسين","Retake to improve")}</button>${U.n < units.length ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${ord(U.n)}</button>` : ""}</div></div>`;
