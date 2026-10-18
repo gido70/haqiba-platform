@@ -242,14 +242,25 @@ html[dir="ltr"] .vid .play svg{margin-inline-start:6px}
 .quiz{padding:18px 20px}
 .qset{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .qset span{font-size:17px;background:var(--th);border-radius:999px;padding:0 12px}
-.qz{padding:12px 0;border-bottom:1px dashed var(--line)}
-.qz>b{color:var(--ink);display:block;margin-bottom:6px}
+.qz{background:var(--ps);border:1px solid var(--line);border-inline-start:6px solid color-mix(in srgb,var(--pa) 35%,transparent);border-radius:20px;padding:16px 18px 18px;margin:16px 0;transition:border-color .2s,background-color .2s}
+.qz.ans{border-inline-start-color:var(--pa)}
+.qz.right{border-inline-start-color:var(--ok);background:color-mix(in srgb,var(--oksoft) 60%,var(--card))}
+.qz.wrong{border-inline-start-color:var(--no);background:color-mix(in srgb,var(--nosoft) 60%,var(--card))}
+.qh{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.qh b{color:var(--ink);font-size:23px;line-height:1.7;font-weight:700}
+.qn{flex:none;width:38px;height:38px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:19px;margin-top:4px;
+  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.45),transparent 50%),var(--pa);box-shadow:inset -2px -3px 6px rgba(0,0,0,.2),0 6px 12px -6px var(--pa)}
 .qopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.qopts button{min-height:48px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:6px 12px;text-align:start;font-size:19px;line-height:1.6}
-.qopts button:hover{border-color:var(--pa)}
-.qopts button.sel{border-color:var(--pa);background:var(--ps)}
-.qopts button.ok{border-color:var(--ok);background:var(--oksoft)}
-.qopts button.no{border-color:var(--no);background:var(--nosoft)}
+.qopts button{display:flex;align-items:center;gap:10px;min-height:44px;border:1px solid var(--line);background:var(--card);color:var(--body);border-radius:12px;padding:5px 10px;text-align:start;font-size:17px;line-height:1.55}
+.qopts button i{flex:none;font-style:normal;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;background:var(--th);color:var(--mute);transition:.2s}
+.qopts button:hover{border-color:var(--pa);color:var(--ink)}
+.qopts button.sel{border-color:var(--pa);background:var(--card);color:var(--ink);box-shadow:0 0 0 2px color-mix(in srgb,var(--pa) 30%,transparent)}
+.qopts button.sel i{background:var(--pa);color:#fff}
+.qopts button.ok{border-color:var(--ok);background:var(--oksoft);color:var(--ink)}
+.qopts button.ok i{background:var(--ok);color:#fff}
+.qopts button.no{border-color:var(--no);background:var(--nosoft);color:var(--ink)}
+.qopts button.no i{background:var(--no);color:#fff}
+.qopts button:disabled{cursor:default}
 .qbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .res{margin-top:14px;padding:14px 16px;border-radius:14px;font-weight:700}
 .res.ok{background:var(--oksoft);color:var(--ok)}
@@ -341,6 +352,8 @@ td .bar{width:120px;margin:0}
   .ui{flex:none;width:auto;min-width:170px}
   .ui small{display:none}
   .qopts{grid-template-columns:1fr}
+  .qh b{font-size:21px}
+  .qz{padding:14px 14px 16px}
   .mi{grid-template-columns:1fr}
   .mi .cv{min-height:0;aspect-ratio:16/9}
   .mi .in,.mi .go{padding:0 16px 16px}
@@ -704,15 +717,15 @@ async function quiz(k, units, U){
   const view = (U.exam_shuffle ? shuffle(qs) : qs).map(q => { const opts = (EN() && q.options.en) ? q.options.en : q.options.ar; const o2 = opts.map((t, j) => ({ t, j })); return { ...q, qt: (EN() && q.q.en) ? q.q.en : q.q.ar, o2: U.exam_shuffle ? shuffle(o2) : o2 }; });
   const sel = {}; const lbl = c => `${L("أرسل الإجابات","Submit answers")} (${c} ${L("من","of")} ${view.length})`;
   el.innerHTML = `<div class="card quiz">${head}<p class="muted" style="margin:0">${L("اختر إجابة لكل سؤال، ثم اضغط «أرسل الإجابات».","Choose an answer for each question, then press “Submit answers”.")}</p>
-    ${view.map((q, i) => `<div class="qz" data-q="${q.id}"><b>${i + 1}. ${esc(q.qt)}</b><div class="qopts">${q.o2.map(o => `<button data-j="${o.j}">${esc(o.t)}</button>`).join("")}</div></div>`).join("")}
+    ${view.map((q, i) => `<div class="qz" data-q="${q.id}"><div class="qh"><span class="qn">${i + 1}</span><b>${esc(q.qt)}</b></div><div class="qopts">${q.o2.map((o, m) => `<button data-j="${o.j}"><i>${EN() ? "ABCD"[m] : "أبجد"[m]}</i><span>${esc(o.t)}</span></button>`).join("")}</div></div>`).join("")}
     <div class="qbar"><button class="btn p" id="qsend" disabled>${lbl(0)}</button></div><div id="qres"></div></div>`;
   el.querySelectorAll(".qz").forEach(z => z.querySelectorAll("button").forEach(b => b.onclick = () => {
-    z.querySelectorAll("button").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); sel[z.dataset.q] = +b.dataset.j;
+    z.querySelectorAll("button").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); z.classList.add("ans"); sel[z.dataset.q] = +b.dataset.j;
     const c = Object.keys(sel).length, s = $("#qsend"); s.disabled = c < view.length; s.textContent = lbl(c); }));
   $("#qsend").onclick = async () => {
     const s = $("#qsend"); s.disabled = true; s.textContent = L("جارٍ التصحيح…","Grading…");
     let r; try { r = await rpc("hq_submit_exam", { p_unit: U.id, p_answers: sel }); } catch (e) { s.disabled = false; s.textContent = lbl(view.length); toast(errMsg(e)); return; }
-    el.querySelectorAll(".qz").forEach(z => { const ok = r.results && r.results[z.dataset.q]; z.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.classList.contains("sel")) { b.classList.remove("sel"); b.classList.add(ok ? "ok" : "no"); } }); });
+    el.querySelectorAll(".qz").forEach(z => { const ok = r.results && r.results[z.dataset.q]; z.classList.add(ok ? "right" : "wrong"); z.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.classList.contains("sel")) { b.classList.remove("sel"); b.classList.add(ok ? "ok" : "no"); } }); });
     s.remove(); await loadState(k.id);
     const last = U.n >= units.length;
     $("#qres").innerHTML = `<div class="res ${r.passed ? "ok" : "no"}">${r.passed ? L("نجحت","Passed") : L("لم تصل إلى النسبة المطلوبة","Below the pass mark")}: ${r.right} ${L("من","of")} ${r.total} (${r.score}%).
