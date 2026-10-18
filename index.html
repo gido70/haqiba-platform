@@ -414,7 +414,10 @@ const ERR = {
   not_signed_in: ["سجّل الدخول أولًا","Please sign in first"], unit_locked: ["اجتز امتحان الوحدة السابقة أولًا","Pass the previous unit’s exam first"],
   no_attempts_left: ["انتهت محاولاتك في هذه الوحدة. راسل المدرب ليفتح لك محاولة جديدة.","No attempts left for this unit. Ask the trainer to open a new attempt."],
   bad_code: ["الكود غير صحيح","Invalid code"], code_expired: ["انتهت صلاحية الكود","This code has expired"], code_used_up: ["استُعمل الكود بالكامل","This code has been fully used"],
-  not_free: ["هذه الحقيبة ليست مجانية","This kit is not free"], not_enrolled: ["لست مسجلًا في هذه الحقيبة","You are not enrolled in this kit"]
+  not_free: ["هذه الحقيبة ليست مجانية","This kit is not free"],
+  names_locked: ["اسم الشهادة مؤكَّد، ولتعديله راسل المدرب","The certificate name is confirmed; contact the trainer to change it"],
+  bad_name_ar: ["اكتب الاسم العربي بحروف عربية، من 5 إلى 70 حرفًا","Write the Arabic name in Arabic letters, 5 to 70 characters"],
+  bad_name_en: ["اكتب الاسم الإنجليزي بحروف إنجليزية فقط، من 5 إلى 70 حرفًا","Write the English name in English letters only, 5 to 70 characters"], not_enrolled: ["لست مسجلًا في هذه الحقيبة","You are not enrolled in this kit"]
 };
 function errMsg(e){ const m = String((e && (e.message || e.error_description)) || e || ""); for (const k in ERR) if (m.includes(k)) return L(...ERR[k]); return L("حدث خطأ، حاول مرة أخرى","Something went wrong, please try again") + (m ? " (" + m.slice(0, 80) + ")" : ""); }
 async function rpc(fn, args){ const { data, error } = await sb.rpc(fn, args || {}); if (error) throw error; return data; }
@@ -832,35 +835,59 @@ async function bindLearn(id){
 }
 
 /* الشهادة */
+let CL = "ar";
 async function vCert(id){
   const k = kit(id); if (!k) return vHome(); if (!S.user) return needLogin("cert/" + id);
   const st = await loadState(id); const c = st && st.certificate;
-  if (!c) return `<div class="wrap"><div class="card auth stitch" style="text-align:center"><h1>${L("الشهادة لم تصدر بعد","No certificate yet")}</h1><p class="muted">${L("تصدر تلقائيًا حين تجتاز كل الوحدات.","It is issued automatically when you pass all units.")}</p><a class="btn g" href="#/learn/${id}">${L("أكمل الحقيبة","Continue the kit")}</a></div></div>`;
-  return `<div style="${theme(k)}"><div class="wrap cwrap"><h1 style="font-size:36px">${L("شهادتك","Your certificate")}</h1><p class="muted">${L("صدرت تلقائيًا باسمك.","Issued automatically in your name.")}</p>
+  if (!c) return `<div class="wrap"><div class="card auth stitch" style="text-align:center"><h1>${L("الشهادة لم تصدر بعد","No certificate yet")}</h1><p class="muted">${L("تصدر حين تجتاز كل الوحدات.","It is issued when you pass all units.")}</p><a class="btn g" href="#/learn/${id}">${L("أكمل الحقيبة","Continue the kit")}</a></div></div>`;
+  if (!c.confirmed) {
+    const pname = (S.profile && S.profile.name) || "";
+    return `<div style="${theme(k)}"><div class="wrap cwrap"><div class="card pad stitch" style="max-width:720px;margin:0 auto">
+      <h1 style="font-size:34px">${L("مبروك! أنهيت الحقيبة 🎉","Congratulations! You finished the kit 🎉")}</h1>
+      <p>${L("قبل إصدار شهادتك، اكتب اسمك <b>كما تريده أن يظهر</b> في الشهادتين: العربية والإنجليزية.","Before your certificate is issued, write your name <b>exactly as you want it to appear</b> on both certificates: Arabic and English.")}</p>
+      <label class="f" for="nar">${L("الاسم في الشهادة العربية","Name on the Arabic certificate")}</label>
+      <input type="text" id="nar" dir="rtl" placeholder="${L("مثال: عبد الرحمن محمد أحمد","e.g. عبد الرحمن محمد أحمد")}" value="${/[\u0600-\u06FF]/.test(pname) ? esc(pname) : ""}">
+      <label class="f" for="nen">${L("الاسم في الشهادة الإنجليزية","Name on the English certificate")}</label>
+      <input type="text" id="nen" dir="ltr" placeholder="e.g. Abdelrahman Mohammed Ahmed" value="${/^[A-Za-z .'-]+$/.test(pname) ? esc(pname) : ""}">
+      <div class="res" style="background:var(--asoft);color:var(--ink);font-weight:400;margin-top:14px">${L("⚠️ راجع الاسمين جيدًا: بعد التأكيد لا يمكن تعديلهما إلا عن طريق المدرب.","⚠️ Check both names carefully: after confirming, only the trainer can change them.")}</div>
+      <button class="btn g" id="confirmNames" style="margin-top:14px;width:100%">${L("أكّد الاسمين وأصدر شهادتي","Confirm names and issue my certificate")}</button></div></div></div>${foot()}`;
+  }
+  return `<div style="${theme(k)}"><div class="wrap cwrap"><h1 style="font-size:36px">${L("شهادتك","Your certificate")}</h1><p class="muted">${L("لديك نسختان بالتفاصيل نفسها: عربية وإنجليزية.","You have two versions with the same details: Arabic and English.")}</p>
+    <div class="tabs" id="ctabs"><button data-l="ar" class="${CL === "ar" ? "on" : ""}">${L("الشهادة العربية","Arabic certificate")}</button><button data-l="en" class="${CL === "en" ? "on" : ""}">${L("الشهادة الإنجليزية","English certificate")}</button></div>
     <div class="card cert pad"><canvas id="cv" width="${(k.certificate && k.certificate.w) || 2000}" height="${(k.certificate && k.certificate.h) || 1414}"></canvas>
-      <div class="crow"><button class="btn p" id="cdl">${I.dl}${L("تنزيل الشهادة","Download certificate")}</button><a class="btn s" href="#/verify/${esc(c.code)}">${L("صفحة التحقق","Verification page")}</a>
+      <div class="crow"><button class="btn p" id="cdl">${I.dl}${L("تنزيل هذه النسخة","Download this version")}</button><a class="btn s" href="#/verify/${esc(c.code)}">${L("صفحة التحقق","Verification page")}</a>
       <span class="muted">${L("رقم التحقق","Verification number")}: <span class="vcode">${esc(c.code)}</span></span></div></div></div></div>${foot()}`;
+}
+function bindCert(id){
+  const cb = $("#confirmNames");
+  if (cb) { cb.onclick = async () => { cb.disabled = true;
+      try { await rpc("hq_set_certificate_names", { p_kit: id, p_ar: $("#nar").value, p_en: $("#nen").value }); toast(L("صدرت شهادتك بالنسختين","Your certificate is issued in both versions")); await loadState(id); render(); }
+      catch (e) { cb.disabled = false; toast(errMsg(e)); } }; return; }
+  document.querySelectorAll("#ctabs button").forEach(b => b.onclick = () => { CL = b.dataset.l; document.querySelectorAll("#ctabs button").forEach(x => x.classList.toggle("on", x === b)); drawCert(id); });
+  drawCert(id);
 }
 async function drawCert(id){
   const k = kit(id), c = S.state[id] && S.state[id].certificate, cv = $("#cv"); if (!k || !c || !cv) return;
-  const cfg = k.certificate || {}, x = cv.getContext("2d"), img = new Image(); img.crossOrigin = "anonymous";
+  const base = k.certificate || {}, en = CL === "en" && base.en, cfg = en ? base.en : base;
+  const x = cv.getContext("2d"), img = new Image(); img.crossOrigin = "anonymous";
   try { await document.fonts.load("700 80px Amiri"); await document.fonts.load("400 40px Amiri"); } catch (e) {}
-  const vals = { name: c.name, kit: tx(k.name) && (k.name.ar || tx(k.name)), date: new Intl.DateTimeFormat("ar-u-nu-latn", { day:"numeric", month:"long", year:"numeric" }).format(new Date(c.issued_at)), code: c.code };
+  const d = new Date(c.issued_at);
+  const vals = en ? { name: c.name_en || c.name, kit: (k.name && k.name.en) || tx(k.name), date: new Intl.DateTimeFormat("en-GB", { day:"numeric", month:"long", year:"numeric" }).format(d), code: c.code }
+                  : { name: c.name_ar || c.name, kit: (k.name && k.name.ar) || tx(k.name), date: new Intl.DateTimeFormat("ar-u-nu-latn", { day:"numeric", month:"long", year:"numeric" }).format(d), code: c.code };
   img.onload = () => {
-    x.drawImage(img, 0, 0, cv.width, cv.height); x.direction = "rtl"; x.textAlign = "center";
-    (cfg.fields || [{ t:"{name}", x:cv.width / 2, y:cv.height * 0.46, size:90, weight:700, color:"#1F2A37" }]).forEach(f => {
-      x.font = `${f.weight || 400} ${f.size || 40}px Amiri, serif`; x.fillStyle = f.color || "#1F2A37";
+    x.clearRect(0, 0, cv.width, cv.height); x.drawImage(img, 0, 0, cv.width, cv.height); x.direction = en ? "ltr" : "rtl"; x.textAlign = "center";
+    (cfg.fields || []).forEach(f => { x.font = `${f.weight || 400} ${f.size || 40}px Amiri, serif`; x.fillStyle = f.color || "#1F2A37";
       x.fillText(String(f.t).replace(/\{(\w+)\}/g, (m, key) => vals[key] ?? ""), f.x, f.y); });
   };
   img.onerror = () => toast(L("تعذّر تحميل قالب الشهادة","Couldn’t load the certificate template"));
   img.src = cfg.template;
-  $("#cdl").onclick = () => { try { const a = document.createElement("a"); a.download = "certificate-" + c.code + ".png"; a.href = cv.toDataURL("image/png"); a.click(); } catch (e) { toast(L("تعذّر التنزيل","Download failed")); } };
+  $("#cdl").onclick = () => { try { const a = document.createElement("a"); a.download = "certificate-" + c.code + "-" + (en ? "en" : "ar") + ".png"; a.href = cv.toDataURL("image/png"); a.click(); } catch (e) { toast(L("تعذّر التنزيل","Download failed")); } };
 }
 async function vVerify(code){
   let v = null; try { v = await rpc("hq_verify_certificate", { p_code: code }); } catch (e) {}
   if (!v) return `<div class="wrap"><div class="card verify"><div class="seal no">✕</div><h1>${L("رقم غير موجود","Number not found")}</h1><p class="muted">${L("تأكد من رقم التحقق المكتوب في الشهادة.","Check the verification number printed on the certificate.")}</p></div></div>`;
   return `<div class="wrap"><div class="card verify"><div class="seal ok">✓</div><h1>${L("شهادة صحيحة","Valid certificate")}</h1><p class="muted">${L("هذه الشهادة صادرة من منصة الحقيبة.","This certificate was issued by the Haqiba platform.")}</p>
-    <dl class="kv"><dt>${L("الاسم","Name")}</dt><dd>${esc(v.name)}</dd><dt>${L("الحقيبة","Kit")}</dt><dd>${esc(tx(v.kit))}</dd><dt>${L("تاريخ الإصدار","Issued on")}</dt><dd>${fmtDate(v.issued_at)}</dd><dt>${L("رقم التحقق","Verification number")}</dt><dd><span class="vcode">${esc(v.code)}</span></dd></dl></div></div>`;
+    <dl class="kv"><dt>${L("الاسم","Name")}</dt><dd>${esc(v.name_ar || v.name)}${v.name_en ? `<br><span dir="ltr">${esc(v.name_en)}</span>` : ""}</dd><dt>${L("الحقيبة","Kit")}</dt><dd>${esc(tx(v.kit))}</dd><dt>${L("تاريخ الإصدار","Issued on")}</dt><dd>${fmtDate(v.issued_at)}</dd><dt>${L("رقم التحقق","Verification number")}</dt><dd><span class="vcode">${esc(v.code)}</span></dd></dl></div></div>`;
 }
 
 /* لوحة المدرب */
@@ -889,7 +916,8 @@ async function adminBody(){
         ${rows.map(r => `<tr><td><b style="color:var(--ink)">${esc(r.name || "—")}</b></td><td dir="ltr">${esc(r.email)}</td><td>${esc(tx((kit(r.kit_id) || {}).name))}</td>
           <td><div style="display:flex;gap:8px;align-items:center"><div class="bar"><i style="width:${r.total ? r.passed / r.total * 100 : 0}%"></i></div>${r.passed}/${r.total}${r.certificate ? " 🎓" : ""}</div></td>
           <td>${fmtDate(r.last_activity)}</td><td>${{ free:L("مجاني","Free"), code:L("كود","Code"), manual:L("منح يدوي","Manual"), purchase:L("شراء","Purchase") }[r.via] || r.via}</td>
-          <td><button class="btn s" style="min-height:36px;padding:0 10px;font-size:16px" data-reset="${r.user_id}|${r.kit_id}">${L("فتح محاولات","Reset attempts")}</button></td></tr>`).join("") || `<tr><td colspan="7" class="muted">${L("لا متدربين بعد.","No trainees yet.")}</td></tr>`}</table></div>`;
+          <td><button class="btn s" style="min-height:36px;padding:0 10px;font-size:16px" data-reset="${r.user_id}|${r.kit_id}">${L("فتح محاولات","Reset attempts")}</button>${r.certificate ? ` <button class="btn s" style="min-height:36px;padding:0 10px;font-size:16px" data-reopen="${r.user_id}|${r.kit_id}">${L("تعديل اسم الشهادة","Reopen certificate name")}</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">${L("لا متدربين بعد.","No trainees yet.")}</td></tr>`}</table></div>`;
+      el.querySelectorAll("[data-reopen]").forEach(b => b.onclick = async () => { const [u, kk] = b.dataset.reopen.split("|"); try { await rpc("hq_owner_reopen_cert_names", { p_user: u, p_kit: kk }); toast(L("فُتح الاسم، وسيكتبه المتدرب من جديد عند فتح شهادته","Name reopened; the trainee will re-enter it")); } catch (e) { toast(errMsg(e)); } });
       el.querySelectorAll("[data-reset]").forEach(b => b.onclick = async () => { const [u, kk] = b.dataset.reset.split("|"); try { const n = await rpc("hq_owner_reset_attempts", { p_user: u, p_kit: kk }); toast(L("فُتحت المحاولات","Attempts reset") + " (" + n + ")"); } catch (e) { toast(errMsg(e)); } });
     } else if (AT === "access") {
       el.innerHTML = `<div class="two"><div class="card pad"><h3>${L("منح وصول يدوي","Manual access")}</h3><p class="muted">${L("اكتب بريد صديقك. إن كان له حساب تنفتح الحقيبة فورًا، وإلا تنفتح عند أول دخول له.","Enter your friend’s email. If they have an account the kit opens now; otherwise on their first sign-in.")}</p>
@@ -948,7 +976,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261018115424";
+const BUILD = "20261018120137";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
@@ -970,7 +998,7 @@ async function render(){
     else if (r === "login") { html = vLogin(); after = bindLogin; }
     else if (r === "my") html = await vMy();
     else if (r === "learn") { html = await vLearn(parts[1], parts[2]); after = () => bindLearn(parts[1]); }
-    else if (r === "cert") { html = await vCert(parts[1]); after = () => drawCert(parts[1]); }
+    else if (r === "cert") { html = await vCert(parts[1]); after = () => bindCert(parts[1]); }
     else if (r === "verify") html = await vVerify(parts[1]);
     else if (r === "admin") { html = await vAdmin(); after = bindAdmin; }
     else html = vHome();
