@@ -583,17 +583,23 @@ function bindLogin(){
     const { error } = await sb.auth.signInWithOtp({ email: em, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
     if (error) { send.disabled = false; send.textContent = L("أرسل رمز الدخول","Send sign-in code"); toast(errMsg(error)); return; }
     $("#auth").innerHTML = `<h1>${L("أدخل الرمز","Enter the code")}</h1>
-      <p class="muted">${L("أرسلنا رمزًا إلى","We sent a code to")} <span dir="ltr">${esc(em)}</span>. ${L("إن لم تجده، افحص البريد المزعج.","If you can’t find it, check your spam folder.")}</p>
+      <p class="muted">${L("أرسلنا رمزًا إلى","We sent a code to")} <span dir="ltr">${esc(em)}</span>. ${L("إن لم تجده، افحص البريد المزعج.","If you can’t find it, check your spam folder.")} ${L("الرمز صالح لمدة نصف ساعة، واستعمل دائمًا <b>آخر رمز</b> وصلك، لأن طلب رمز جديد يُبطل ما قبله.","The code is valid for 30 minutes. Always use the <b>latest</b> code: requesting a new one cancels the previous.")}</p>
       <input type="text" id="otp" inputmode="numeric" maxlength="8" autocomplete="one-time-code" dir="ltr" placeholder="••••••" style="text-align:center;font-size:30px;letter-spacing:.35em;margin:12px 0">
       <button class="btn g" id="go" style="width:100%;margin-top:6px">${L("دخول","Sign in")}</button>
+      <button class="btn s" id="resend" style="width:100%;margin-top:8px" disabled>${L("أرسل رمزًا جديدًا","Send a new code")}</button>
       <p class="note">${L("وصلك رابط بدل الرمز؟ اضغطه من الجهاز نفسه وستدخل مباشرة.","Got a link instead of a code? Open it on this device and you’ll be signed in.")}</p>`;
+    const rs = $("#resend"); let wait = 60;
+    const tick = setInterval(() => { wait--; if (!document.body.contains(rs)) { clearInterval(tick); return; } if (wait <= 0) { clearInterval(tick); rs.disabled = false; rs.textContent = L("أرسل رمزًا جديدًا","Send a new code"); } else rs.textContent = L("أرسل رمزًا جديدًا بعد ","Send a new code in ") + wait + L(" ثانية","s"); }, 1000);
+    rs.onclick = async () => { rs.disabled = true; const { error: e3 } = await sb.auth.signInWithOtp({ email: em, options: { shouldCreateUser: true } });
+      if (e3) { rs.disabled = false; toast(errMsg(e3)); return; } toast(L("أُرسل رمز جديد، استعمله هو","A new code was sent; use that one")); $("#otp").value = ""; wait = 60;
+      const t2 = setInterval(() => { wait--; if (!document.body.contains(rs)) { clearInterval(t2); return; } if (wait <= 0) { clearInterval(t2); rs.disabled = false; rs.textContent = L("أرسل رمزًا جديدًا","Send a new code"); } else rs.textContent = L("أرسل رمزًا جديدًا بعد ","Send a new code in ") + wait + L(" ثانية","s"); }, 1000); };
     const otp = $("#otp"); otp.focus(); otp.oninput = () => { otp.value = otp.value.replace(/\D/g, "").slice(0, 8); };
     $("#go").onclick = async () => {
       const token = otp.value; if (token.length < 6) { toast(L("أكمل الرمز","Complete the code")); return; }
       const go = $("#go"); go.disabled = true;
       go.textContent = L("جارٍ الدخول…","Signing in…");
       const { data: d2, error: e2 } = await sb.auth.verifyOtp({ email: em, token, type: "email" });
-      if (e2) { go.disabled = false; go.textContent = L("دخول","Sign in"); toast(L("الرمز غير صحيح أو انتهت صلاحيته","The code is wrong or expired")); return; }
+      if (e2) { go.disabled = false; go.textContent = L("دخول","Sign in"); toast(L("الرمز غير صحيح أو انتهت صلاحيته. اضغط «أرسل رمزًا جديدًا» واستعمل آخر رمز يصلك.","The code is wrong or expired. Press “Send a new code” and use the latest one.")); return; }
       await afterSignIn(d2.session);
     };
   };
@@ -942,7 +948,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261018115310";
+const BUILD = "20261018115424";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
