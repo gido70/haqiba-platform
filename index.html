@@ -781,18 +781,35 @@ async function spaceBody(k, units){
     el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => showFile(+b.dataset.f));
     if (PL.openFile !== undefined && PL.openFile !== null) { const i = PL.openFile; PL.openFile = null; showFile(i); }
   } else if (PL.space === "fb") {
-    const un = PL.fbUnit || PL.unit;
-    el.innerHTML = `<div class="card pad" style="max-width:720px"><h2 class="fa" style="font-size:28px">${L("رأيك يهمنا","Your feedback matters")}</h2>
-      <p class="muted">${L("هذه نسخة تجريبية. اكتب بصراحة: أين توقفت؟ ما الذي لم يكن واضحًا؟ ما الذي أعجبك؟","This is a trial version. Be candid: where did you get stuck? What was unclear? What did you like?")}</p>
-      <label class="f">${L("عن أي جزء؟","About which part?")}</label><div class="chips" id="fbU"><button data-v="0" class="${un ? "" : "on"}">${L("الحقيبة كلها","The whole kit")}</button>${units.map(u => `<button data-v="${u.n}" class="${u.n === un ? "on" : ""}">${L("الوحدة","Unit")} ${u.n}</button>`).join("")}</div>
-      <label class="f">${L("تقييمك","Your rating")}</label><div class="chips" id="fbR">${[5,4,3,2,1].map(v => `<button data-v="${v}">${"★".repeat(v)}</button>`).join("")}</div>
-      <label class="f" for="fbN">${L("ملاحظتك","Your note")}</label><textarea id="fbN" rows="4" style="font:inherit;font-size:19px;width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink)"></textarea>
-      <button class="btn g" id="fbSend" style="margin-top:12px">${L("أرسل رأيك","Send feedback")}</button></div>`;
-    let fu = un || 0, fr = null;
-    el.querySelectorAll("#fbU button").forEach(b => b.onclick = () => { fu = +b.dataset.v; el.querySelectorAll("#fbU button").forEach(x => x.classList.toggle("on", x === b)); });
-    el.querySelectorAll("#fbR button").forEach(b => b.onclick = () => { fr = +b.dataset.v; el.querySelectorAll("#fbR button").forEach(x => x.classList.toggle("on", x === b)); });
-    $("#fbSend").onclick = async () => { const note = $("#fbN").value.trim(); if (!fr && !note) { toast(L("اختر تقييمًا أو اكتب ملاحظة","Choose a rating or write a note")); return; }
-      try { await rpc("hq_send_feedback", { p_kit: k.id, p_unit: fu || null, p_rating: fr, p_note: note }); toast(L("وصلنا رأيك، شكرًا لك","Thanks, we got your feedback")); $("#fbN").value = ""; } catch (e) { toast(errMsg(e)); } };
+    let mine = {}; try { mine = await rpc("hq_my_feedback", { p_kit: k.id }); } catch (e) {}
+    let fu = PL.fbUnit != null ? PL.fbUnit : (PL.unit || 0);
+    const parts = [[0, L("الحقيبة كلها","The whole kit")]].concat(units.map(u => [u.n, L("الوحدة","Unit") + " " + u.n]));
+    const draw = (editing) => {
+      const done = mine[fu];
+      const chips = parts.map(p => `<button data-v="${p[0]}" class="${p[0] === fu ? "on" : ""}">${mine[p[0]] ? "✓ " : ""}${p[1]}</button>`).join("");
+      let body;
+      if (done && !editing) {
+        body = `<div class="res ok" style="margin-top:14px">${L("شكرًا لك، وصلنا رأيك في هذا الجزء.","Thank you, we received your feedback on this part.")}</div>
+          <div class="card post" style="margin-top:10px"><div class="hd"><span class="ic3 s plum">${I.star}</span><div><b style="color:var(--acc)">${done.rating ? "★".repeat(done.rating) : "—"}</b><small>${fmtDate(done.at)}</small></div></div>${done.note ? `<p>${esc(done.note)}</p>` : ""}</div>
+          <div class="qbar"><button class="btn s" id="fbEdit">${L("عدّل رأيك","Edit your feedback")}</button>${parts.some(p => !mine[p[0]]) ? `<span class="muted">${L("اختر جزءًا لم تقيّمه بعد (بلا علامة ✓).","Pick a part you haven’t rated yet (no ✓).")}</span>` : ""}</div>`;
+      } else {
+        body = `<label class="f">${L("تقييمك","Your rating")}</label><div class="chips" id="fbR">${[5,4,3,2,1].map(v => `<button data-v="${v}" class="${done && done.rating === v ? "on" : ""}">${"★".repeat(v)}</button>`).join("")}</div>
+          <label class="f" for="fbN">${L("ملاحظتك","Your note")}</label><textarea id="fbN" rows="4" style="font:inherit;font-size:19px;width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink)">${done && done.note ? esc(done.note) : ""}</textarea>
+          <button class="btn g" id="fbSend" style="margin-top:12px">${done ? L("احفظ التعديل","Save changes") : L("أرسل رأيك","Send feedback")}</button>`;
+      }
+      el.innerHTML = `<div class="card pad" style="max-width:760px"><h2 class="fa" style="font-size:28px">${L("رأيك يهمنا","Your feedback matters")}</h2>
+        <p class="muted">${L("رأي واحد لكل وحدة وللحقيبة كلها. اكتب بصراحة: أين توقفت؟ ما الذي لم يكن واضحًا؟ ما الذي أعجبك؟","One response per unit and for the whole kit. Be candid: where did you get stuck? What was unclear? What did you like?")}</p>
+        <label class="f">${L("عن أي جزء؟","About which part?")}</label><div class="chips" id="fbU">${chips}</div>${body}</div>`;
+      el.querySelectorAll("#fbU button").forEach(b => b.onclick = () => { fu = +b.dataset.v; PL.fbUnit = fu; draw(false); });
+      const ed = $("#fbEdit"); if (ed) ed.onclick = () => draw(true);
+      let fr = done ? done.rating : null;
+      el.querySelectorAll("#fbR button").forEach(b => b.onclick = () => { fr = +b.dataset.v; el.querySelectorAll("#fbR button").forEach(x => x.classList.toggle("on", x === b)); });
+      const sendB = $("#fbSend"); if (sendB) sendB.onclick = async () => { const note = $("#fbN").value.trim(); if (!fr && !note) { toast(L("اختر تقييمًا أو اكتب ملاحظة","Choose a rating or write a note")); return; }
+        sendB.disabled = true;
+        try { await rpc("hq_send_feedback", { p_kit: k.id, p_unit: fu, p_rating: fr, p_note: note }); mine[fu] = { rating: fr, note, at: new Date().toISOString() }; toast(L("شكرًا لك، وصلنا رأيك","Thank you, we got your feedback")); draw(false); }
+        catch (e) { sendB.disabled = false; toast(errMsg(e)); } };
+    };
+    draw(false);
   }
 }
 async function bindLearn(id){
