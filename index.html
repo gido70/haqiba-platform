@@ -714,13 +714,15 @@ async function quiz(k, units, U, improve){
   const st = S.state[k.id], used = +(st.attempts && st.attempts[U.n]) || 0, maxA = U.exam_attempts, isPassed = passed(k.id).includes(U.n);
   const left = maxA === 0 ? L("بلا حد","unlimited") : Math.max(0, maxA - used);
   const best = st.best && st.best[U.n];
-  const head = isPassed ? `<div class="qset"><span>${L("إعادة للتحسين","Improvement retake")}</span>${best != null ? `<span>${L("أفضل نتيجة لك","Your best")}: ${best}%</span>` : ""}</div>`
+  const canRetake = maxA === 0 || used < maxA;
+  const head = isPassed ? `<div class="qset"><span>${L("إعادة للتحسين","Improvement retake")}</span>${best != null ? `<span>${L("أفضل نتيجة لك","Your best")}: ${best}%</span>` : ""}<span>${L("المحاولات المتبقية","Attempts left")}: ${left}</span></div>`
     : `<div class="qset"><span>${L("نسبة النجاح","Pass mark")} ${U.exam_pass}%</span><span>${L("المحاولات المتبقية","Attempts left")}: ${left}</span></div>`;
   const goNext = () => { PL.tab = "video"; location.hash = "#/learn/" + k.id + "/" + (U.n + 1); };
-  if (isPassed && !improve) { el.innerHTML = `<div class="card quiz"><div class="res ok">${L("اجتزت امتحان هذه الوحدة.","You passed this unit’s exam.")}${best != null ? " " + L("أفضل نتيجة لك","Your best score") + ": " + best + "%" : ""}</div>
-      <p class="muted" style="margin:10px 0 0">${L("يمكنك إعادة الامتحان للتحسين متى شئت. الإعادة لا تغيّر نجاحك ولا تقدّمك، وتُحفظ أفضل نتيجة.","You can retake the exam to improve at any time. Retakes never undo your pass or progress; your best score is kept.")}</p>
-      <div class="qbar"><button class="btn s" id="improve">${I.quiz}${L("أعد الامتحان للتحسين","Retake to improve")}</button>${U.n < units.length ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${ord(U.n)}</button>` : ""}</div></div>`;
-    const nx = $("#nx"); if (nx) nx.onclick = goNext; $("#improve").onclick = () => quiz(k, units, U, true); return; }
+  if (isPassed && !improve) { el.innerHTML = `<div class="card quiz"><div class="qset"><span>${L("المحاولات المستعملة","Attempts used")}: ${used}${maxA ? " " + L("من","of") + " " + maxA : ""}</span><span>${L("المحاولات المتبقية","Attempts left")}: ${left}</span></div>
+      <div class="res ok">${L("اجتزت امتحان هذه الوحدة.","You passed this unit’s exam.")}${best != null ? " " + L("أفضل نتيجة لك","Your best score") + ": " + best + "%" : ""}</div>
+      <p class="muted" style="margin:10px 0 0">${canRetake ? L("يمكنك إعادة الامتحان للتحسين بالمحاولات المتبقية. الإعادة لا تلغي نجاحك ولا تقدّمك، وتُحفظ أفضل نتيجة.","You can retake the exam to improve with your remaining attempts. Retakes never undo your pass or progress; your best score is kept.") : L("استنفدت كل المحاولات في هذه الوحدة، ونجاحك وأفضل نتيجة لك محفوظان.","You have used all attempts for this unit; your pass and best score are kept.")}</p>
+      <div class="qbar">${canRetake ? `<button class="btn s" id="improve">${I.quiz}${L("أعد الامتحان للتحسين","Retake to improve")}</button>` : ""}${U.n < units.length ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${ord(U.n)}</button>` : ""}</div></div>`;
+    const nx = $("#nx"); if (nx) nx.onclick = goNext; const im = $("#improve"); if (im) im.onclick = () => quiz(k, units, U, true); return; }
   if (maxA !== 0 && used >= maxA) { el.innerHTML = `<div class="card quiz">${head}<div class="res no">${L(...ERR.no_attempts_left)}</div></div>`; return; }
   let qs; try { qs = await loadQuestions(U.id); } catch (e) { el.innerHTML = `<div class="card quiz res no">${errMsg(e)}</div>`; return; }
   const view = (U.exam_shuffle ? shuffle(qs) : qs).map(q => { const opts = (EN() && q.options.en) ? q.options.en : q.options.ar; const o2 = opts.map((t, j) => ({ t, j })); return { ...q, qt: (EN() && q.q.en) ? q.q.en : q.q.ar, o2: U.exam_shuffle ? shuffle(o2) : o2 }; });
@@ -738,16 +740,18 @@ async function quiz(k, units, U, improve){
     s.remove(); await loadState(k.id);
     const last = U.n >= units.length;
     if (r.improve) {
-      $("#qres").innerHTML = `<div class="res ${r.score >= U.exam_pass ? "ok" : "no"}">${L("نتيجتك هذه المرة","This time you scored")}: ${r.right} ${L("من","of")} ${r.total} (${r.score}%). ${L("أفضل نتيجة لك","Your best score")}: ${r.best}%.</div>
-        <div class="qbar"><button class="btn s" id="again">${L("أعد مرة أخرى","Retake again")}</button>${!last ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${ord(U.n)}</button>` : ""}</div>`;
-      const nx2 = $("#nx"); if (nx2) nx2.onclick = goNext; $("#again").onclick = () => quiz(k, units, U, true); return;
+      const more = r.attempts_left === null || r.attempts_left > 0;
+      $("#qres").innerHTML = `<div class="res ${r.score >= U.exam_pass ? "ok" : "no"}">${L("نتيجتك هذه المرة","This time you scored")}: ${r.right} ${L("من","of")} ${r.total} (${r.score}%). ${L("أفضل نتيجة لك","Your best score")}: ${r.best}%.${r.attempts_left !== null ? " " + L("المحاولات المتبقية","Attempts left") + ": " + r.attempts_left : ""}</div>
+        <div class="qbar">${more ? `<button class="btn s" id="again">${L("أعد مرة أخرى","Retake again")}</button>` : ""}${!last ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${ord(U.n)}</button>` : ""}</div>`;
+      const nx2 = $("#nx"); if (nx2) nx2.onclick = goNext; const ag2 = $("#again"); if (ag2) ag2.onclick = () => quiz(k, units, U, true); return;
     }
     $("#qres").innerHTML = `<div class="res ${r.passed ? "ok" : "no"}">${r.passed ? L("نجحت","Passed") : L("لم تصل إلى النسبة المطلوبة","Below the pass mark")}: ${r.right} ${L("من","of")} ${r.total} (${r.score}%).
       ${!r.passed && r.attempts_left !== null ? " " + L("المحاولات المتبقية","Attempts left") + ": " + r.attempts_left : ""}</div>
-      <div class="qbar">${r.passed ? (r.certificate ? `<a class="btn g" href="#/cert/${k.id}">${L("اعرض شهادتي","View my certificate")}</a>` : !last ? `<button class="btn p" id="nx">${L("انتقل إلى الوحدة","Go to unit")} ${ord(U.n)}</button>` : "") : (r.attempts_left === 0 ? "" : `<button class="btn s" id="again">${L("أعد المحاولة","Try again")}</button>`)}
+      <div class="qbar">${r.passed && (r.attempts_left === null || r.attempts_left > 0) ? `<button class="btn s" id="improve2">${I.quiz}${L("أعد للتحسين","Retake to improve")}</button>` : ""}${r.passed ? (r.certificate ? `<a class="btn g" href="#/cert/${k.id}">${L("اعرض شهادتي","View my certificate")}</a>` : !last ? `<button class="btn p" id="nx">${L("انتقل إلى الوحدة","Go to unit")} ${ord(U.n)}</button>` : "") : (r.attempts_left === 0 ? "" : `<button class="btn s" id="again">${L("أعد المحاولة","Try again")}</button>`)}
       <button class="btn s" id="rate">${I.star}${L("قيّم هذه الوحدة","Rate this unit")}</button></div>`;
     const nx = $("#nx"); if (nx) nx.onclick = goNext;
     const ag = $("#again"); if (ag) ag.onclick = () => quiz(k, units, U);
+    const im2 = $("#improve2"); if (im2) im2.onclick = async () => { await loadState(k.id); quiz(k, units, U, true); };
     $("#rate").onclick = () => { PL.space = "fb"; PL.fbUnit = U.n; render(); };
     const sd = $("#side"); if (sd) { sd.innerHTML = sideHtml(k, units, PL.unit); bindSide(k, units); }
     if (r.certificate) toast(L("مبروك! صدرت شهادتك","Congratulations! Your certificate is ready"));
