@@ -5,8 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0F5C4A">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="description" content="منصة الحقائب التدريبية: حقائب قصيرة فيها فيديو لكل وحدة، وملف تعمل عليه، وامتحان، وشهادة باسمك.">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="الحقيبة">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:title" content="الحقيبة · منصة الحقائب التدريبية">
+<meta property="og:description" content="حقائب تدريبية قصيرة: فيديو لكل وحدة، وملف تعمل عليه، وامتحان، وشهادة باسمك.">
+<meta property="og:url" content="https://gido70.github.io/haqiba-platform/">
+<meta property="og:image" content="https://gido70.github.io/haqiba-platform/og-image.jpg">
+<meta property="og:image:secure_url" content="https://gido70.github.io/haqiba-platform/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="شعار الحقيبة: حقيبة تدريبية خضراء">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="الحقيبة · منصة الحقائب التدريبية">
+<meta name="twitter:image" content="https://gido70.github.io/haqiba-platform/og-image.jpg">
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="الحقيبة">
@@ -976,7 +994,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261018120137";
+const BUILD = "20261018123514";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
