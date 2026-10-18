@@ -561,6 +561,7 @@ function bindLogin(){
     const em = $("#em").value.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast(L("اكتب بريدًا صحيحًا","Enter a valid email")); return; }
     send.disabled = true; send.textContent = L("جارٍ الإرسال…","Sending…");
+    try { localStorage.setItem("hq-next", nextRoute()); } catch (e) {}
     const { error } = await sb.auth.signInWithOtp({ email: em, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
     if (error) { send.disabled = false; send.textContent = L("أرسل رمز الدخول","Send sign-in code"); toast(errMsg(error)); return; }
     $("#auth").innerHTML = `<h1>${L("أدخل الرمز","Enter the code")}</h1>
@@ -572,8 +573,10 @@ function bindLogin(){
     $("#go").onclick = async () => {
       const token = otp.value; if (token.length < 6) { toast(L("أكمل الرمز","Complete the code")); return; }
       const go = $("#go"); go.disabled = true;
-      const { error: e2 } = await sb.auth.verifyOtp({ email: em, token, type: "email" });
-      if (e2) { go.disabled = false; toast(L("الرمز غير صحيح أو انتهت صلاحيته","The code is wrong or expired")); return; }
+      go.textContent = L("جارٍ الدخول…","Signing in…");
+      const { data: d2, error: e2 } = await sb.auth.verifyOtp({ email: em, token, type: "email" });
+      if (e2) { go.disabled = false; go.textContent = L("دخول","Sign in"); toast(L("الرمز غير صحيح أو انتهت صلاحيته","The code is wrong or expired")); return; }
+      await afterSignIn(d2.session);
     };
   };
 }
@@ -587,6 +590,30 @@ function bindName(){
   b.onclick = async () => { const nm = $("#nm").value.trim(); if (nm.length < 3) { toast(L("اكتب اسمك الكامل","Enter your full name")); return; }
     try { S.profile = await rpc("hq_ensure_profile", { p_name: nm, p_lang: S.lang }); location.hash = "#/" + (sessionStorage.getItem("hq-next") || "my"); render(); } catch (e) { toast(errMsg(e)); } };
 }
+
+/* ما بعد الدخول: انتقال فوري ورسالة واضحة */
+let lastUid = null;
+async function afterSignIn(session){
+  if (!session || !session.user) return;
+  if (lastUid === session.user.id && S.user && S.user.id === session.user.id) return;
+  lastUid = session.user.id;
+  await onSession(session);
+  toast(L("تم الدخول، أهلًا بك","You’re signed in. Welcome!"));
+  goNext();
+}
+function goNext(){
+  let nx = "my"; try { nx = localStorage.getItem("hq-next") || nextRoute() || "my"; localStorage.removeItem("hq-next"); } catch (e) {}
+  const target = "#/" + nx;
+  if (location.hash !== target) location.hash = target; else render();
+}
+async function syncSession(){
+  try { const { data } = await sb.auth.getSession(); const uid = data.session && data.session.user && data.session.user.id;
+    if (uid && uid !== (S.user && S.user.id)) await afterSignIn(data.session);
+    else if (!uid && S.user) { lastUid = null; await onSession(null); render(); } } catch (e) {}
+}
+addEventListener("storage", e => { if (e.key && e.key.indexOf("hq-auth") === 0) syncSession(); });
+addEventListener("focus", () => { if (S.ready && !S.user) syncSession(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S.ready && !S.user) syncSession(); });
 
 /* حقائبي */
 function needLogin(next){ return `<div class="wrap"><div class="card auth stitch" style="text-align:center"><h1>${L("سجّل الدخول أولًا","Sign in first")}</h1><p class="muted">${L("لترى حقائبك وتكمل تقدّمك.","To see your kits and continue your progress.")}</p><a class="btn g" href="#/login?next=${encodeURIComponent(next)}">${L("دخول","Sign in")}</a></div></div>`; }
@@ -887,13 +914,16 @@ addEventListener("hashchange", () => {
   render();
   try { await withTimeout(loadCatalog(), 12000); } catch (e) { console.error(e); }
   try { const { data } = await withTimeout(sb.auth.getSession(), 8000); await onSession(data.session); } catch (e) { console.error(e); await onSession(null); }
-  S.ready = true; render();
+  S.ready = true; lastUid = S.user && S.user.id;
+  const h = location.hash;
+  if (S.user && (/access_token|refresh_token|type=magiclink|type=signup/.test(h) || h.startsWith("#/login"))) { toast(L("تم الدخول، أهلًا بك","You’re signed in. Welcome!")); goNext(); }
+  else if (/access_token|error_description/.test(h)) { history.replaceState(null, "", location.pathname + "#/"); if (/error_description/.test(h)) toast(L("انتهت صلاحية رابط الدخول، اطلب رمزًا جديدًا","The sign-in link expired; request a new code")); render(); }
+  else render();
   // لا ننتظر أي طلب داخل مستمع الدخول نفسه (يسبب تجمّد المكتبة)، بل نؤجله
-  let lastUid = S.user && S.user.id;
   sb.auth.onAuthStateChange((ev, session) => {
     const uid = session && session.user && session.user.id;
-    if (uid === lastUid) return; lastUid = uid;
-    setTimeout(async () => { await onSession(session); if (uid && location.hash.startsWith("#/login")) location.hash = "#/" + nextRoute(); else render(); }, 0);
+    if (uid === lastUid) return;
+    setTimeout(async () => { if (uid) await afterSignIn(session); else { lastUid = null; await onSession(null); render(); } }, 0);
   });
 })();
 
