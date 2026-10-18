@@ -462,7 +462,8 @@ async function loadQuestions(unitId){
   if (error) throw error; S.qcache[unitId] = data; return data;
 }
 async function onSession(session){
-  S.user = session ? session.user : null; S.profile = null; S.state = {}; S.qcache = {};
+  S.user = session ? session.user : null; S.profile = null; S.state = {}; S.qcache = {}; S.units = {};
+  try { await withTimeout(loadCatalog(), 12000); } catch (e) { console.error(e); }
   if (S.user) { try { S.profile = await withTimeout(rpc("hq_ensure_profile", { p_name: null, p_lang: S.lang }), 10000); } catch (e) { console.error(e); } }
 }
 
@@ -970,7 +971,6 @@ addEventListener("hashchange", () => {
 });
 (async () => {
   render();
-  try { await withTimeout(loadCatalog(), 12000); } catch (e) { console.error(e); }
   try { const { data } = await withTimeout(sb.auth.getSession(), 8000); await onSession(data.session); } catch (e) { console.error(e); await onSession(null); }
   S.ready = true; lastUid = S.user && S.user.id;
   const h = location.hash;
