@@ -470,6 +470,7 @@ async function loadCatalog(){
   ]);
   if (g.error) throw g.error; if (k.error) throw k.error;
   S.groups = g.data; S.kits = k.data;
+  try { const c = await sb.from("hq_settings").select("value").eq("key", "contact").maybeSingle(); S.contact = (c.data && c.data.value) || {}; } catch (e) { S.contact = {}; }
 }
 async function loadUnits(kitId){
   if (S.units[kitId]) return S.units[kitId];
@@ -593,7 +594,10 @@ function bindLanding(id){
     const a = b.dataset.act, box = b.closest(".in, div");
     try {
       if (a === "free") { b.disabled = true; await rpc("hq_enroll_free", { p_kit: id }); toast(L("سُجّلت في الحقيبة، بالتوفيق!","You’re enrolled. Good luck!")); location.hash = "#/learn/" + id; }
-      if (a === "buy") toast(L("الدفع المباشر داخل المنصة قريبًا. للحصول على الحقيبة الآن، تواصل مع المدرب ليرسل لك كود وصول.","Direct payment is coming soon. To get the kit now, contact the trainer for an access code."));
+      if (a === "buy") { const c = S.contact || {}, k = kit(id), msg = encodeURIComponent(L("السلام عليكم، أريد شراء حقيبة «","Hello, I would like to buy the kit “") + tx(k.name) + L("» من منصة الحقيبة.","” on Haqiba."));
+        const links = (c.whatsapp ? `<a class="btn g" target="_blank" rel="noopener" href="https://wa.me/${c.whatsapp}?text=${msg}">${L("تواصل عبر واتساب","Contact on WhatsApp")}</a>` : "") + (c.email ? `<a class="btn s" href="mailto:${esc(c.email)}?subject=${msg}">${L("تواصل بالبريد","Contact by email")}</a>` : "");
+        const box = b.parentElement; let p = box.querySelector(".buyinfo"); if (!p) { p = document.createElement("div"); p.className = "buyinfo"; p.style.marginTop = "10px"; box.insertBefore(p, b.nextSibling); }
+        p.innerHTML = `<div class="res" style="background:var(--asoft);color:var(--ink);font-weight:400">${L("الشراء المباشر داخل المنصة يُفعَّل قريبًا.","Direct purchase on the platform is coming soon.")} ${links ? L("للحصول على الحقيبة الآن تواصل مع المدرب، وسيرسل لك كود وصول.","To get the kit now, contact the trainer and you will receive an access code.") : L("إن كان لديك كود وصول من المدرب، اضغط «عندي كود وصول».","If you have an access code from the trainer, press “I have an access code”.")}</div>${links ? `<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${links}</div>` : ""}`; }
       if (a === "code") { const cb = b.parentElement.querySelector(".codebox"); if (cb) { cb.classList.toggle("on"); const inp = cb.querySelector("input"); if (inp) inp.focus(); } }
       if (a === "redeem") { const inp = b.parentElement.querySelector("input"); const k2 = await rpc("hq_redeem_code", { p_code: inp ? inp.value : "" }); toast(L("تم تفعيل الحقيبة","Kit activated")); location.hash = "#/learn/" + k2; }
     } catch (e) { b.disabled = false; toast(errMsg(e)); }
@@ -948,7 +952,13 @@ async function adminBody(){
           <a class="lk" href="#/p/${k.id}">${L("معاينة صفحة الحقيبة","Preview kit page")}</a></div></div>
           <div class="set"><b>${L("الحالة","Status")}</b><div class="chips" data-kit="${k.id}" data-f="status">${["draft","published","archived"].map(v => `<button data-v="${v}" class="${k.status === v ? "on" : ""}">${stl[v]}</button>`).join("")}</div></div>
           <div class="set"><b>${L("الوصول","Access")}</b><div class="chips" data-kit="${k.id}" data-f="access">${["free","code","paid"].map(v => `<button data-v="${v}" class="${k.access === v ? "on" : ""}">${acl[v]}</button>`).join("")}</div></div></div>`).join("")}</div>
+        <div class="card pad" style="margin-top:14px"><h3>${L("وسيلة التواصل للشراء اليدوي","Contact for manual purchase")}</h3>
+          <p class="muted" style="font-size:17px">${L("اتركهما فارغين الآن إن شئت. حين تملؤهما، يظهران للزائر عند ضغط «اشترِ الحقيبة» كزرين: واتساب برسالة جاهزة، وبريد. تظهر للعامة، فاختر رقمًا وبريدًا لا مانع من نشرهما.","Leave empty for now if you like. When filled, they appear to visitors who press “Buy the kit” as two buttons: WhatsApp with a ready message, and email. They are public.")}</p>
+          <label class="f" for="cwa">${L("رقم واتساب بالصيغة الدولية بلا + (مثال: 971501234567)","WhatsApp number in international format without + (e.g. 971501234567)")}</label><input type="text" id="cwa" dir="ltr" inputmode="numeric" value="${esc((S.contact && S.contact.whatsapp) || "")}">
+          <label class="f" for="cem">${L("البريد","Email")}</label><input type="email" id="cem" dir="ltr" value="${esc((S.contact && S.contact.email) || "")}">
+          <button class="btn g" id="saveContact" style="margin-top:12px">${L("احفظ","Save")}</button></div>
         <p class="muted" style="margin-top:12px;font-size:17px">${L("«منشورة» تظهر للجميع في الكتالوج. «مسودة» لك وحدك للمراجعة. «مؤرشفة» تختفي عن الجدد ويبقى المسجلون. الوصول «بكود» يعني أن المتدرب يحتاج كود وصول أو منحًا يدويًا منك.","“Published” is visible to all. “Draft” is only for you. “Archived” hides from newcomers. “Code” access means trainees need a code or a manual grant.")}</p>`;
+      $("#saveContact").onclick = async () => { try { S.contact = await rpc("hq_owner_set_contact", { p_whatsapp: $("#cwa").value, p_email: $("#cem").value }); toast(L("حُفظت وسيلة التواصل","Contact saved")); } catch (e) { toast(String(e.message || "").includes("bad_whatsapp") ? L("رقم الواتساب غير صحيح","Invalid WhatsApp number") : errMsg(e)); } };
       el.querySelectorAll(".chips[data-kit] button").forEach(b => b.onclick = async () => {
         const box = b.parentElement, f = box.dataset.f, v = b.dataset.v, id = box.dataset.kit;
         if (f === "status" && v === "published" && !confirm(L("نشر الحقيبة يجعلها ظاهرة للجميع في الكتالوج. هل راجعتها بقائمة الفحص؟","Publishing makes the kit visible to everyone. Did you review it with the checklist?"))) return;
@@ -1033,7 +1043,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261019054818";
+const BUILD = "20261019055448";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
