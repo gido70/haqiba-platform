@@ -169,7 +169,7 @@ html[lang="ar"] .nav a{font-family:var(--fa);line-height:2.2;padding:0 16px}
 .lp{display:grid;grid-template-columns:1fr 370px;gap:28px;padding:30px 0}
 .lp h1{font-size:46px}
 .lp .tag{font-size:23px;color:var(--pa);font-weight:700;margin:4px 0 10px}
-.buy{position:sticky;top:96px;overflow:hidden}
+.buy{position:sticky;top:96px;overflow:hidden;align-self:start}
 .buy .cv img{display:block;width:100%}
 .buy .in{padding:18px}
 .buy .pr{font-size:36px;font-weight:700;color:var(--ink)}
@@ -555,33 +555,47 @@ async function vGroup(id){
     <section class="sec"><h2 class="fa">${L("حقائب المجموعة","Kits in this collection")}</h2><div class="grid">${ks.map(pkCard).join("")}</div></section></div>${foot()}`;
 }
 
-/* صفحة الحقيبة */
+/* صفحة الحقيبة: تعرض نفسها وتشرح محتواها قبل الشراء */
 async function vLanding(id){
   const k = kit(id); if (!k) return `<div class="wrap"><div class="card auth"><h1>${L("الحقيبة غير موجودة","Kit not found")}</h1></div></div>`;
-  const units = await loadUnits(id); const st = S.user ? await loadState(id) : null; const has = st && st.enrolled;
+  const units = await loadUnits(id); const st = S.user ? await loadState(id) : null; const has = st && st.enrolled; const lp = k.landing || {};
   let cta;
-  if (has) cta = `<a class="btn p" href="#/learn/${id}">${(st.passed || []).length ? L("أكمل من حيث توقفت","Continue where you left off") : L("ابدأ الحقيبة","Start the kit")}</a>`;
-  else if (!S.user) cta = `<a class="btn p" href="#/login?next=p/${id}">${k.access === "free" ? L("سجّل مجانًا وابدأ","Sign up free and start") : L("سجّل الدخول للبدء","Sign in to start")}</a>`;
+  if (has) cta = `<a class="btn p" href="#/learn/${id}">${(st.passed || []).length ? L("أكمل من حيث توقفت","Continue where you left off") : L("ادخل الحقيبة","Enter the kit")}</a>`;
+  else if (!S.user) cta = `<a class="btn p" href="#/login?next=p/${id}">${k.access === "free" ? L("سجّل مجانًا وابدأ","Sign up free and start") : L("سجّل الدخول للشراء أو التفعيل","Sign in to buy or activate")}</a>`;
   else if (k.access === "free") cta = `<button class="btn p" data-act="free">${L("ابدأ الحقيبة مجانًا","Start the kit for free")}</button>`;
-  else cta = `<p class="muted" style="font-size:17px;margin:10px 0 0">${L("الدفع المباشر داخل المنصة قريبًا. للحصول على الحقيبة الآن، احصل على كود وصول من المدرب.","Direct payment is coming soon. To get the kit now, ask the trainer for an access code.")}</p><button class="btn s" data-act="code">${L("عندي كود وصول","I have an access code")}</button><div class="codebox" id="codebox"><input type="text" id="code" placeholder="HQB-XXXXXX" dir="ltr"><button class="btn g" data-act="redeem">${L("تفعيل","Activate")}</button></div>`;
+  else cta = `<button class="btn p" data-act="buy">${L("اشترِ الحقيبة","Buy the kit")} · ${esc(tx(k.price))}</button><button class="btn s" data-act="code">${L("عندي كود وصول","I have an access code")}</button><div class="codebox" id="codebox"><input type="text" id="code" placeholder="HQB-XXXXXX" dir="ltr"><button class="btn g" data-act="redeem">${L("تفعيل","Activate")}</button></div>`;
+  const list = arr => `<ul class="gets">${(arr || []).map(g => `<li>${esc(g)}</li>`).join("")}</ul>`;
+  const sec = (title, body) => body ? `<div class="sec"><h2 class="fa">${title}</h2>${body}</div>` : "";
   const gets = tx(k.gets) || [];
+  const per = tx(lp.per_unit);
+  const faq = (lp.faq || []).map(f => `<details class="card post" style="padding:0"><summary style="cursor:pointer;padding:14px 18px;list-style:none;font-weight:700;color:var(--ink)">❓ ${esc(tx(f.q))}</summary><p style="margin:0;padding:0 18px 14px">${esc(tx(f.a))}</p></details>`).join("");
+  const promo = k.promo_video ? `<div class="vid" style="background:#000;margin:18px 0"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="${esc(tx(k.name))}" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : "";
   return `<div style="${theme(k)}"><div class="wrap"><section class="lp"><div>
       ${k.status === "draft" ? `<div class="res" style="background:var(--asoft);color:var(--acc);margin-bottom:12px">${L("هذه الحقيبة مسودة، لا يراها إلا أنت. انشرها من لوحة المدرب ← الحقائب.","This kit is a draft that only you can see. Publish it from Trainer panel → Kits.")}</div>` : ""}
       <span class="pill">${units.length} ${L("وحدات","units")} · ${esc(tx(k.hours))}</span><h1 style="margin-top:8px">${esc(tx(k.name))}</h1>
       <div class="tag">${esc(tx(k.tagline))}</div><p style="font-size:21px">${esc(tx(k.promise))}</p>
-      ${k.promo_video ? `<div class="vid" style="background:#000;margin:18px 0"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="${esc(tx(k.name))}" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : ""}
-      ${gets.length ? `<div class="sec"><h2 class="fa">${L("ماذا تحصل","What you get")}</h2><ul class="gets">${gets.map(g => `<li>${esc(g)}</li>`).join("")}</ul></div>` : ""}
-      <div class="sec"><h2 class="fa">${L("الوحدات","Units")}</h2><div class="ul">${units.map(u => `<div class="card u"><span class="num">${u.n}</span><div><b>${esc(tx(u.title))}</b>${u.question ? `<small>${L("السؤال","Question")}: ${esc(tx(u.question))}</small>` : ""}${u.outcome ? `<small>${L("تخرج بـ","You leave with")}: ${esc(tx(u.outcome))}</small>` : ""}</div></div>`).join("")}</div></div></div>
+      ${promo}
+      ${sec(L("ماذا ستُنتج","What you will produce"), lp.produce ? list(tx(lp.produce)) : "")}
+      ${sec(L("ماذا تحصل","What you get"), gets.length ? list(gets) : "")}
+      ${sec(L("الوحدات","Units"), `<div class="ul">${units.map(u => `<div class="card u"><span class="num">${u.n}</span><div><b>${esc(tx(u.title))}</b>${u.question ? `<small>${L("السؤال","Question")}: ${esc(tx(u.question))}</small>` : ""}${u.outcome ? `<small>${L("تخرج بـ","You leave with")}: ${esc(tx(u.outcome))}</small>` : ""}</div></div>`).join("")}</div>`)}
+      ${sec(L("في كل وحدة","In every unit"), per ? `<div class="chips">${per.map(p => `<span class="pill" style="font-size:16px;padding:4px 14px">${esc(p)}</span>`).join("")}</div>` : "")}
+      ${sec(L("التكلفة بصدق","Honest about cost"), lp.cost ? list(tx(lp.cost)) : "")}
+      ${sec(L("شهادتك","Your certificate"), lp.cert_preview ? `<img class="certprev" src="${esc(lp.cert_preview)}" alt="" loading="lazy"><p class="muted">${L("تصدر باسمك بنسختين: عربية وإنجليزية، ومعها رقم تحقق.","Issued in your name in Arabic and English, with a verification number.")}</p>` : "")}
+      ${sec(L("أسئلة شائعة","FAQ"), faq ? `<div class="feed">${faq}</div>` : "")}
+      ${lp.closing ? `<div class="card pad done-card" style="margin-top:20px"><h2>${esc(tx(lp.closing))}</h2><div style="max-width:420px;margin:12px auto 0;display:flex;flex-direction:column;gap:8px">${cta.replace('id="codebox"','id="codebox2"').replace('id="code"','id="code2"')}</div></div>` : ""}
+      ${lp.rights ? `<p class="muted" style="font-size:15px;margin-top:18px">© ${esc(tx(lp.rights))}</p>` : ""}
+    </div>
     <aside class="card buy stitch"><div class="cv">${k.cover_url ? `<img src="${esc(k.cover_url)}" alt="">` : ""}</div><div class="in">
       <div class="pr">${esc(tx(k.price))}</div><div class="muted">${L("وصول دائم، وتحديثات الحقيبة مجانًا","Lifetime access, free kit updates")}</div>${cta}</div></aside></section></div></div>${foot()}`;
 }
 function bindLanding(id){
   document.querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
-    const a = b.dataset.act;
+    const a = b.dataset.act, box = b.closest(".in, div");
     try {
       if (a === "free") { b.disabled = true; await rpc("hq_enroll_free", { p_kit: id }); toast(L("سُجّلت في الحقيبة، بالتوفيق!","You’re enrolled. Good luck!")); location.hash = "#/learn/" + id; }
-      if (a === "code") { $("#codebox").classList.toggle("on"); $("#code").focus(); }
-      if (a === "redeem") { const k2 = await rpc("hq_redeem_code", { p_code: $("#code").value }); toast(L("تم تفعيل الحقيبة","Kit activated")); location.hash = "#/learn/" + k2; }
+      if (a === "buy") toast(L("الدفع المباشر داخل المنصة قريبًا. للحصول على الحقيبة الآن، تواصل مع المدرب ليرسل لك كود وصول.","Direct payment is coming soon. To get the kit now, contact the trainer for an access code."));
+      if (a === "code") { const cb = b.parentElement.querySelector(".codebox"); if (cb) { cb.classList.toggle("on"); const inp = cb.querySelector("input"); if (inp) inp.focus(); } }
+      if (a === "redeem") { const inp = b.parentElement.querySelector("input"); const k2 = await rpc("hq_redeem_code", { p_code: inp ? inp.value : "" }); toast(L("تم تفعيل الحقيبة","Kit activated")); location.hash = "#/learn/" + k2; }
     } catch (e) { b.disabled = false; toast(errMsg(e)); }
   });
 }
@@ -1019,7 +1033,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261019053350";
+const BUILD = "20261019054818";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
