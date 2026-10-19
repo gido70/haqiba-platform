@@ -964,7 +964,13 @@ async function adminBody(){
           <label class="f">${L("عدد الأكواد","How many")}</label><div class="chips" data-g="n">${[1,5,10,20].map((v, i) => `<button data-v="${v}" class="${i === 1 ? "on" : ""}">${v}</button>`).join("")}</div>
           <label class="f">${L("الاستخدام لكل كود","Uses per code")}</label><div class="chips" data-g="u">${[[1,L("مرة","Once")],[5,"5"],[0,L("بلا حد","Unlimited")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 0 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
           <label class="f">${L("ينتهي بعد","Expires after")}</label><div class="chips" data-g="e">${[[7,L("أسبوع","1 week")],[30,L("شهر","1 month")],[0,L("بلا انتهاء","Never")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 1 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
-          <button class="btn g" id="gen" style="margin-top:14px">${L("ولّد الأكواد","Generate codes")}</button><div class="codes" id="codes"></div></div></div>`;
+          <button class="btn g" id="gen" style="margin-top:14px">${L("ولّد الأكواد","Generate codes")}</button><div class="codes" id="codes"></div></div></div>
+        <div class="card pad" style="margin-top:14px;font-size:17px"><b style="color:var(--ink);font-size:20px">${L("كيف تفتح حقيبة لشخص؟ طريقتان","How to open a kit for someone: two ways")}</b>
+          <p style="margin:10px 0 4px"><b>${L("الطريقة الأولى: المنح بالبريد (الأسهل، وتصلح لنفسك)","Way 1: grant by email (easiest; works for yourself)")}</b></p>
+          <p style="margin:0">${L("① اكتب بريد الشخص في خانة «البريد» يمين هذه الصفحة ← ② اختر الحقيبة ← ③ اضغط «امنح الوصول». <b>انتهى.</b> إن كان له حساب تظهر الحقيبة فورًا في «حقائبي» عنده، وإن لم يكن له حساب تظهر عند أول دخول له بهذا البريد. لا يحتاج أن يكتب أي كود.","① Type the person’s email in the Email field ← ② choose the kit ← ③ press “Grant access”. <b>Done.</b> If they have an account, the kit appears in “My kits” immediately; otherwise on their first sign-in with that email. No code needed.")}</p>
+          <p style="margin:12px 0 4px"><b>${L("الطريقة الثانية: كود الوصول (لمن لا تعرف بريده، أو لمجموعة)","Way 2: access code (when you don’t know their email, or for a group)")}</b></p>
+          <p style="margin:0">${L("① في خانة «أكواد الوصول» اختر الحقيبة، والعدد، ومرات الاستعمال، والمدة ← ② اضغط «ولّد الأكواد» فيظهر كود مثل HQB-A1B2C3 ← ③ انسخه وأرسله للشخص في الواتساب ← ④ هو يفتح صفحة الحقيبة، ويسجّل دخوله، ويضغط «عندي كود وصول»، ويكتب الكود، ويضغط «تفعيل» ← ⑤ تنفتح له الحقيبة.","① In “Access codes” choose the kit, count, uses and expiry ← ② press “Generate codes” to get a code like HQB-A1B2C3 ← ③ copy and send it on WhatsApp ← ④ they open the kit page, sign in, press “I have an access code”, type it and press “Activate” ← ⑤ the kit opens.")}</p>
+          <p class="muted" style="margin:10px 0 0">${L("الكود «مرة واحدة» يستعمله شخص واحد فقط. والكود «بلا حد» يصلح لمجموعة كاملة. ويظهر كل من دخل في تبويب «المتدربون»، ونوع وصوله «منح يدوي» أو «كود».","A “once” code works for one person only; an “unlimited” code suits a whole group. Everyone who joins appears in “Trainees” with access type “Manual” or “Code”.")}</p></div>`;
       chipBind();
       $("#grant").onclick = async () => { try { const r = await rpc("hq_owner_grant", { p_email: $("#gem").value, p_kit: pick("gk") }); toast(r === "enrolled" ? L("انفتحت الحقيبة لهذا البريد","Kit opened for this email") : L("ستنفتح عند أول دخول له","It will open on their first sign-in")); $("#gem").value = ""; } catch (e) { toast(errMsg(e)); } };
       $("#gen").onclick = async () => { try { const codes = await rpc("hq_owner_make_codes", { p_kit: pick("ck"), p_count: +pick("n"), p_max_uses: +pick("u"), p_days: +pick("e") }); $("#codes").innerHTML = codes.map(c => `<div><span class="vcode">${esc(c)}</span></div>`).join(""); } catch (e) { toast(errMsg(e)); } };
@@ -1013,7 +1019,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261019050601";
+const BUILD = "20261019053350";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
