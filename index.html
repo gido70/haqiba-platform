@@ -513,7 +513,7 @@ function pkCard(k){
   const units = S.units[k.id];
   return `<a class="card pk stitch" href="#/p/${k.id}" style="${theme(k)}">
     <div class="cv">${k.cover_url ? `<img src="${esc(k.cover_url)}" alt="" loading="lazy">` : `<div class="gen"><b>${esc(tx(k.name))}</b>${esc(tx(k.tagline))}</div>`}</div>
-    <div class="in"><span class="pill">${k.access === "free" ? L("مجانية","Free") : k.access === "code" ? L("بكود وصول","Access code") : L("حقيبة مدفوعة","Paid kit")}</span>
+    <div class="in"><span class="pill">${k.access === "free" ? L("مجانية","Free") : k.access === "code" ? L("بكود وصول","Access code") : L("حقيبة مدفوعة","Paid kit")}</span>${k.status !== "published" ? ` <span class="pill" style="background:var(--asoft);color:var(--acc)">${k.status === "draft" ? L("مسودة · لا يراها غيرك","Draft · only you see it") : L("مؤرشفة","Archived")}</span>` : ""}
       <h3>${esc(tx(k.name))}</h3><div>${esc(tx(k.tagline))}</div>
       <div class="meta muted"><span>${esc(tx(k.hours))}</span><span class="price">${esc(tx(k.price))}</span></div></div></a>`;
 }
@@ -563,9 +563,10 @@ async function vLanding(id){
   if (has) cta = `<a class="btn p" href="#/learn/${id}">${(st.passed || []).length ? L("أكمل من حيث توقفت","Continue where you left off") : L("ابدأ الحقيبة","Start the kit")}</a>`;
   else if (!S.user) cta = `<a class="btn p" href="#/login?next=p/${id}">${k.access === "free" ? L("سجّل مجانًا وابدأ","Sign up free and start") : L("سجّل الدخول للبدء","Sign in to start")}</a>`;
   else if (k.access === "free") cta = `<button class="btn p" data-act="free">${L("ابدأ الحقيبة مجانًا","Start the kit for free")}</button>`;
-  else cta = `<button class="btn s" data-act="code">${L("عندي كود وصول","I have an access code")}</button><div class="codebox" id="codebox"><input type="text" id="code" placeholder="HQB-XXXXXX" dir="ltr"><button class="btn g" data-act="redeem">${L("تفعيل","Activate")}</button></div>`;
+  else cta = `<p class="muted" style="font-size:17px;margin:10px 0 0">${L("الدفع المباشر داخل المنصة قريبًا. للحصول على الحقيبة الآن، احصل على كود وصول من المدرب.","Direct payment is coming soon. To get the kit now, ask the trainer for an access code.")}</p><button class="btn s" data-act="code">${L("عندي كود وصول","I have an access code")}</button><div class="codebox" id="codebox"><input type="text" id="code" placeholder="HQB-XXXXXX" dir="ltr"><button class="btn g" data-act="redeem">${L("تفعيل","Activate")}</button></div>`;
   const gets = tx(k.gets) || [];
   return `<div style="${theme(k)}"><div class="wrap"><section class="lp"><div>
+      ${k.status === "draft" ? `<div class="res" style="background:var(--asoft);color:var(--acc);margin-bottom:12px">${L("هذه الحقيبة مسودة، لا يراها إلا أنت. انشرها من لوحة المدرب ← الحقائب.","This kit is a draft that only you can see. Publish it from Trainer panel → Kits.")}</div>` : ""}
       <span class="pill">${units.length} ${L("وحدات","units")} · ${esc(tx(k.hours))}</span><h1 style="margin-top:8px">${esc(tx(k.name))}</h1>
       <div class="tag">${esc(tx(k.tagline))}</div><p style="font-size:21px">${esc(tx(k.promise))}</p>
       ${k.promo_video ? `<div class="vid" style="background:#000;margin:18px 0"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="${esc(tx(k.name))}" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : ""}
@@ -909,11 +910,11 @@ async function vVerify(code){
 }
 
 /* لوحة المدرب */
-let AT = "people";
+let AT = "kits";
 async function vAdmin(){
   if (!S.user) return needLogin("admin");
   if (!isOwner()) return `<div class="wrap"><div class="card auth"><h1>${L("هذه اللوحة لصاحب المنصة","This panel is for the platform owner")}</h1></div></div>`;
-  const tabs = [["people",L("المتدربون","Trainees"),I.users],["access",L("منح الوصول","Access"),I.key],["exam",L("الامتحانات","Exams"),I.quiz],["fb",L("الآراء","Feedback"),I.star],["guide",L("الدليل","Build guide"),I.folder],["index",L("الإندكس","Project index"),I.book]];
+  const tabs = [["kits",L("الحقائب","Kits"),I.bag],["people",L("المتدربون","Trainees"),I.users],["access",L("منح الوصول","Access"),I.key],["exam",L("الامتحانات","Exams"),I.quiz],["fb",L("الآراء","Feedback"),I.star],["guide",L("الدليل","Build guide"),I.folder],["index",L("الإندكس","Project index"),I.book]];
   return `<div class="wrap adm"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h1>${L("لوحة المدرب","Trainer panel")}</h1><button class="btn s" id="asLearnerBtn" style="margin-inline-start:auto">${I.users}${L("شاهد المنصة كمتدرب","View as a trainee")}</button></div>
     <div class="card pad" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><b style="color:var(--ink)">${L("رابط الحقيبة المجانية للأصدقاء","Free kit link for friends")}:</b><span class="vcode" id="shareLink">${location.origin + location.pathname}#/p/masar-ai</span><button class="btn s" id="copyLink" style="min-height:40px;padding:0 14px;font-size:18px">${L("انسخ","Copy")}</button></div>
     <nav class="space" id="atabs">${tabs.map(t => `<button data-t="${t[0]}" class="${AT === t[0] ? "on" : ""}" style="--pa:var(--brand);--ps:var(--bsoft)"><span class="ic3 s">${t[2]}</span><span>${t[1]}</span></button>`).join("")}</nav>
@@ -925,7 +926,21 @@ async function adminBody(){
   const pick = g => { const b = el.querySelector(`.chips[data-g="${g}"] .on`); return b && b.dataset.v; };
   const chipBind = () => el.querySelectorAll(".chips button").forEach(b => b.onclick = () => b.parentElement.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)));
   try {
-    if (AT === "people") {
+    if (AT === "kits") {
+      const stl = { draft:L("مسودة","Draft"), published:L("منشورة","Published"), archived:L("مؤرشفة","Archived") };
+      const acl = { free:L("مجانية","Free"), code:L("بكود","Code"), paid:L("مدفوعة","Paid") };
+      el.innerHTML = `<div class="feed">${kits.map(k => `<div class="card pad" style="${theme(k)}"><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          ${k.cover_url ? `<img src="${esc(k.cover_url)}" alt="" style="width:120px;border-radius:12px">` : ""}<div style="flex:1;min-width:200px"><b style="color:var(--ink);font-size:22px">${esc(tx(k.name))}</b><div class="muted">${esc(tx(k.tagline))}</div>
+          <a class="lk" href="#/p/${k.id}">${L("معاينة صفحة الحقيبة","Preview kit page")}</a></div></div>
+          <div class="set"><b>${L("الحالة","Status")}</b><div class="chips" data-kit="${k.id}" data-f="status">${["draft","published","archived"].map(v => `<button data-v="${v}" class="${k.status === v ? "on" : ""}">${stl[v]}</button>`).join("")}</div></div>
+          <div class="set"><b>${L("الوصول","Access")}</b><div class="chips" data-kit="${k.id}" data-f="access">${["free","code","paid"].map(v => `<button data-v="${v}" class="${k.access === v ? "on" : ""}">${acl[v]}</button>`).join("")}</div></div></div>`).join("")}</div>
+        <p class="muted" style="margin-top:12px;font-size:17px">${L("«منشورة» تظهر للجميع في الكتالوج. «مسودة» لك وحدك للمراجعة. «مؤرشفة» تختفي عن الجدد ويبقى المسجلون. الوصول «بكود» يعني أن المتدرب يحتاج كود وصول أو منحًا يدويًا منك.","“Published” is visible to all. “Draft” is only for you. “Archived” hides from newcomers. “Code” access means trainees need a code or a manual grant.")}</p>`;
+      el.querySelectorAll(".chips[data-kit] button").forEach(b => b.onclick = async () => {
+        const box = b.parentElement, f = box.dataset.f, v = b.dataset.v, id = box.dataset.kit;
+        if (f === "status" && v === "published" && !confirm(L("نشر الحقيبة يجعلها ظاهرة للجميع في الكتالوج. هل راجعتها بقائمة الفحص؟","Publishing makes the kit visible to everyone. Did you review it with the checklist?"))) return;
+        try { await rpc("hq_owner_set_kit", { p_kit: id, p_status: f === "status" ? v : null, p_access: f === "access" ? v : null }); box.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); await loadCatalog(); toast(L("حُفظ","Saved")); }
+        catch (e) { toast(errMsg(e)); } });
+    } else if (AT === "people") {
       const rows = await rpc("hq_owner_trainees");
       const fin = rows.filter(r => r.certificate).length;
       el.innerHTML = `<div class="stats"><div class="card stat"><span class="ic3 sky">${I.users}</span><div><b>${rows.length}</b><span>${L("تسجيلًا في الحقائب","enrolments")}</span></div></div>
@@ -998,7 +1013,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261019045922";
+const BUILD = "20261019050601";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
