@@ -908,12 +908,16 @@ async function drawCert(id){
   const base = k.certificate || {}, en = CL === "en" && base.en, cfg = en ? base.en : base;
   const x = cv.getContext("2d"), img = new Image(); img.crossOrigin = "anonymous";
   try { await document.fonts.load("700 80px Amiri"); await document.fonts.load("400 40px Amiri"); } catch (e) {}
-  const d = new Date(c.issued_at);
-  const vals = en ? { name: c.name_en || c.name, kit: (k.name && k.name.en) || tx(k.name), date: new Intl.DateTimeFormat("en-GB", { day:"numeric", month:"long", year:"numeric" }).format(d), code: c.code }
-                  : { name: c.name_ar || c.name, kit: (k.name && k.name.ar) || tx(k.name), date: new Intl.DateTimeFormat("ar-u-nu-latn", { day:"numeric", month:"long", year:"numeric" }).format(d), code: c.code };
+  const d = new Date(c.issued_at); const iso = (base.date_format === "iso");
+  const isoDate = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const vals = en ? { name: c.name_en || c.name, kit: (k.name && k.name.en) || tx(k.name), date: iso ? isoDate : new Intl.DateTimeFormat("en-GB", { day:"numeric", month:"long", year:"numeric" }).format(d), code: c.code }
+                  : { name: c.name_ar || c.name, kit: (k.name && k.name.ar) || tx(k.name), date: iso ? isoDate : new Intl.DateTimeFormat("ar-u-nu-latn", { day:"numeric", month:"long", year:"numeric" }).format(d), code: c.code };
   img.onload = () => {
     x.clearRect(0, 0, cv.width, cv.height); x.drawImage(img, 0, 0, cv.width, cv.height); x.direction = en ? "ltr" : "rtl"; x.textAlign = "center";
-    (cfg.fields || []).forEach(f => { x.font = `${f.weight || 400} ${f.size || 40}px Amiri, serif`; x.fillStyle = f.color || "#1F2A37";
+    (cfg.fields || []).forEach(f => {
+      if (f.type === "line") { x.strokeStyle = f.color || "#1F2A37"; x.lineWidth = f.width || 2; x.beginPath(); x.moveTo(f.x1, f.y); x.lineTo(f.x2, f.y); x.stroke(); return; }
+      x.font = `${f.weight || 400} ${f.size || 40}px Amiri, serif`; x.fillStyle = f.color || "#1F2A37";
+      x.textAlign = f.align || "center"; x.textBaseline = "middle";
       x.fillText(String(f.t).replace(/\{(\w+)\}/g, (m, key) => vals[key] ?? ""), f.x, f.y); });
   };
   img.onerror = () => toast(L("تعذّر تحميل قالب الشهادة","Couldn’t load the certificate template"));
@@ -1043,7 +1047,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261019055448";
+const BUILD = "20261019061028";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
