@@ -391,6 +391,22 @@ td .bar{width:120px;margin:0}
   .hwi{grid-template-columns:auto 1fr}.hwi .act{grid-column:1/-1}
 }
 
+
+/* الكراسة التفاعلية */
+.wf{margin:10px 0 14px}
+.wl{display:block;font-weight:700;color:var(--ink);margin-bottom:4px}
+.wf input[type=text],.wf textarea,.wt textarea,.wf select{font:inherit;font-size:18px;width:100%;padding:8px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.wt textarea{font-size:16px;min-width:140px;padding:6px 8px}
+.wbx{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.exb{border:1px dashed var(--line);background:var(--th);color:var(--ink);border-radius:999px;padding:2px 12px;font-size:15px;cursor:pointer}
+.exs{display:flex;flex-direction:column;gap:6px;width:100%;margin-top:6px}
+.exs button{text-align:start;border:1px solid var(--line);background:var(--card);color:var(--body);border-radius:10px;padding:6px 10px;font-size:16px;cursor:pointer}
+.exs button:hover{border-color:var(--pa)}
+.cks{display:flex;flex-direction:column;gap:6px}
+.cks label{display:flex;gap:8px;align-items:flex-start;font-size:18px}
+.cks input{margin-top:8px}
+.wt td,.wt th{white-space:normal;vertical-align:top}
+@media print{.top,.bnav,.space,#wbSample,#wbClear,#wbPrint,.wbx,.exb,.foot,.toast,.demo{display:none!important}.wsheet{break-inside:avoid;box-shadow:none}}
 </style>
 </head>
 <body>
@@ -580,8 +596,9 @@ async function vLanding(id){
       ${sec(L("ماذا تحصل","What you get"), gets.length ? list(gets) : "")}
       ${sec(L("الوحدات","Units"), `<div class="ul">${units.map(u => `<div class="card u"><span class="num">${u.n}</span><div><b>${esc(tx(u.title))}</b>${u.question ? `<small>${L("السؤال","Question")}: ${esc(tx(u.question))}</small>` : ""}${u.outcome ? `<small>${L("تخرج بـ","You leave with")}: ${esc(tx(u.outcome))}</small>` : ""}</div></div>`).join("")}</div>`)}
       ${sec(L("في كل وحدة","In every unit"), per ? `<div class="chips">${per.map(p => `<span class="pill" style="font-size:16px;padding:4px 14px">${esc(p)}</span>`).join("")}</div>` : "")}
+      ${sec(L("على ماذا بُنيت الحقيبة","What the kit is built on"), lp.basis ? list(tx(lp.basis)) : "")}
       ${sec(L("التكلفة بصدق","Honest about cost"), lp.cost ? list(tx(lp.cost)) : "")}
-      ${sec(L("شهادتك","Your certificate"), lp.cert_preview ? `<img class="certprev" src="${esc(lp.cert_preview)}" alt="" loading="lazy"><p class="muted">${L("تصدر باسمك بنسختين: عربية وإنجليزية، ومعها رقم تحقق.","Issued in your name in Arabic and English, with a verification number.")}</p>` : "")}
+      ${sec(L("شهادتك","Your certificate"), lp.cert_preview ? `<img class="certprev" src="${esc(lp.cert_preview)}" alt="" loading="lazy"><p class="muted">${lp.cert_note ? esc(tx(lp.cert_note)) + " " : ""}${L("تصدر باسمك بنسختين: عربية وإنجليزية، ومعها رقم تحقق.","Issued in your name in Arabic and English, with a verification number.")}</p>` : "")}
       ${sec(L("أسئلة شائعة","FAQ"), faq ? `<div class="feed">${faq}</div>` : "")}
       ${lp.closing ? `<div class="card pad done-card" style="margin-top:20px"><h2>${esc(tx(lp.closing))}</h2><div style="max-width:420px;margin:12px auto 0;display:flex;flex-direction:column;gap:8px">${cta.replace('id="codebox"','id="codebox2"').replace('id="code"','id="code2"')}</div></div>` : ""}
       ${lp.rights ? `<p class="muted" style="font-size:15px;margin-top:18px">© ${esc(tx(lp.rights))}</p>` : ""}
@@ -697,12 +714,15 @@ async function vMy(){
 /* المشغّل ومساحة الحقيبة */
 let PL = { kit:null, unit:1, tab:"video", space:"content" };
 const passed = (id) => (S.state[id] && S.state[id].passed) || [];
+const firstN = units => units && units.length ? Math.min(...units.map(x => x.n)) : 1;
+const lastN = units => units && units.length ? Math.max(...units.map(x => x.n)) : 1;
+const uLabel = (units, n) => firstN(units) === 0 ? String(n) : ord(n - 1);
 const hasIntro = k => !!(k && (k.intro || k.promo_video));
-function unlocked(units, id, n){ if (n === 0) return true; return !units.some(x => x.required && x.n < n && !passed(id).includes(x.n)); }
+function unlocked(units, id, n){ if (n === -1) return true; return !units.some(x => x.required && x.n < n && !passed(id).includes(x.n)); }
 function sideHtml(k, units, u){
   const req = units.filter(x => x.required).length || units.length, done = passed(k.id).length, pct = Math.round(done / req * 100);
   return `<h3>${esc(tx(k.name))}</h3><div class="bar"><i style="width:${pct}%"></i></div><div class="muted" style="font-size:17px;margin-bottom:10px">${done} ${L("من","of")} ${req} ${L("وحدات","units")}</div>
-    <div class="ulist">${hasIntro(k) ? `<button class="ui ${u === 0 ? "cur" : ""}" data-u="0"><span class="num">▶</span><span><b>${esc(tx((k.intro && k.intro.title) || { ar:"مقدمة الحقيبة", en:"Kit introduction" }))}</b><small>${L("ابدأ من هنا","Start here")}</small></span></button>` : ""}${units.map(x => { const st = passed(k.id).includes(x.n) ? "done" : unlocked(units, k.id, x.n) ? "" : "lock";
+    <div class="ulist">${hasIntro(k) ? `<button class="ui ${u === -1 ? "cur" : ""}" data-u="-1"><span class="num">▶</span><span><b>${esc(tx((k.intro && k.intro.title) || { ar:"مقدمة الحقيبة", en:"Kit introduction" }))}</b><small>${L("ابدأ من هنا","Start here")}</small></span></button>` : ""}${units.map(x => { const st = passed(k.id).includes(x.n) ? "done" : unlocked(units, k.id, x.n) ? "" : "lock";
       return `<button class="ui ${st} ${x.n === u ? "cur" : ""}" data-u="${x.n}"><span class="num">${st === "done" ? "✓" : st === "lock" ? "🔒" : x.n}</span><span><b>${esc(tx(x.title))}</b>${x.minutes ? `<small>${esc(x.minutes)} ${L("دقيقة","min")}</small>` : ""}</span></button>`; }).join("")}</div>`;
 }
 async function vLearn(id, n){
@@ -711,15 +731,15 @@ async function vLearn(id, n){
   const units = await loadUnits(id); const st = await loadState(id);
   if (!st.enrolled) { setTimeout(() => location.hash = "#/p/" + id, 0); return spinner(); }
   if (PL.kit !== id) PL = { kit:id, unit:null, tab:"video", space:"content" };
-  const spaces = [["content",L("المحتوى","Content"),I.play2,""],["news",L("الإعلانات","Announcements"),I.megaphone,"copper"],["lib",L("المكتبة","Library"),I.folder,"sand"],["fb",L("رأيك","Feedback"),I.star,"plum"]];
+  const spaces = [["content",L("المحتوى","Content"),I.play2,""]].concat(k.workbook ? [["wb",L("الكراسة","Workbook"),I.text,"sky"]] : []).concat([["news",L("الإعلانات","Announcements"),I.megaphone,"copper"],["lib",L("المكتبة","Library"),I.folder,"sand"],["fb",L("رأيك","Feedback"),I.star,"plum"]]);
   const bar = `<nav class="space" id="space">${spaces.map(x => `<button data-s="${x[0]}" class="${PL.space === x[0] ? "on" : ""}"><span class="ic3 s ${x[3]}">${x[2]}</span><span>${x[1]}</span></button>`).join("")}</nav>`;
 
   if (PL.space !== "content") return `<div style="${theme(k)}"><div class="wrap">${bar}<div style="padding:10px 0 40px" id="spaceBody">${spinner()}</div></div></div>`;
-  let u = (n !== undefined && n !== "") ? +n : (PL.unit ?? (hasIntro(k) && !passed(id).length ? 0 : 1));
-  if (u === 0 && !hasIntro(k)) u = 1;
-  if (!unlocked(units, id, u)) { const firstOpen = units.find(x => !passed(id).includes(x.n)); u = firstOpen ? firstOpen.n : units.length; }
+  let u = (n !== undefined && n !== "") ? +n : (PL.unit ?? (hasIntro(k) && !passed(id).length ? -1 : firstN(units)));
+  if (u === -1 && !hasIntro(k)) u = firstN(units);
+  if (!unlocked(units, id, u)) { const firstOpen = units.find(x => !passed(id).includes(x.n)); u = firstOpen ? firstOpen.n : lastN(units); }
   PL.unit = u;
-  if (u === 0) {
+  if (u === -1) {
     const it = k.intro || {};
     return `<div style="${theme(k)}"><div class="wrap">${bar}<div class="pl"><aside class="card side" id="side">${sideHtml(k, units, 0)}</aside><section class="main">
       <div class="card uh"><div class="k">${L("ابدأ من هنا","Start here")}</div><h2>${esc(tx(it.title || { ar:"مقدمة الحقيبة", en:"Kit introduction" }))}</h2>${it.text ? `<p style="margin:6px 0 0">${esc(tx(it.text))}</p>` : ""}</div>
@@ -729,11 +749,11 @@ async function vLearn(id, n){
     </section></div></div></div>`;
   }
   const U = units.find(x => x.n === u);
-  const tabs = [["video",L("الفيديو","Video"),I.vid]]; if (U.pdf_url || U.pdf_pages) tabs.push(["file",L("الملف","File"),I.file]); tabs.push(["quiz",L("الامتحان","Exam"),I.quiz]); if (U.content) tabs.push(["text",L("نص الدرس","Lesson text"),I.text]);
+  const tabs = [["video",L("الفيديو","Video"),I.vid]]; if (U.pdf_url || U.pdf_pages) tabs.push(["file",L("الملف","File"),I.file]); tabs.push(["quiz",L("الامتحان","Exam"),I.quiz]); if (U.content) tabs.push(["text",L("نص الدرس","Lesson text"),I.text]); if (U.practice) tabs.push(["practice",L("طبّق الآن","Practice now"),I.star]);
   if (!tabs.some(t => t[0] === PL.tab)) PL.tab = "video";
   const all = units.filter(x => x.required).every(x => passed(id).includes(x.n));
   return `<div style="${theme(k)}"><div class="wrap">${bar}<div class="pl"><aside class="card side" id="side">${sideHtml(k, units, u)}</aside><section class="main">
-    <div class="card uh"><div class="k">${L("الوحدة","Unit")} ${ord(u - 1)}</div><h2>${esc(tx(U.title))}</h2>
+    <div class="card uh"><div class="k">${L("الوحدة","Unit")} ${uLabel(units, u)}</div><h2>${esc(tx(U.title))}</h2>
       <div class="qo2">${U.question ? `<span>${L("السؤال","Question")}: <b>${esc(tx(U.question))}</b></span>` : ""}${U.outcome ? `<span>${L("تخرج بـ","You leave with")}: <b>${esc(tx(U.outcome))}</b></span>` : ""}</div></div>
     <div class="tabs" id="tabs">${tabs.map(t => `<button data-t="${t[0]}" class="${PL.tab === t[0] ? "on" : ""}">${t[2]}${t[1]}</button>`).join("")}</div>
     <div id="pane"></div>
@@ -747,10 +767,16 @@ async function pane(k, units){
     el.innerHTML = U.video_id ? `<div class="vid" style="background:#000"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(U.video_id)}?rel=0&modestbranding=1&playsinline=1" title="${esc(tx(U.title))}" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>
       <p class="note">${L("بعد المشاهدة افتح ملف الوحدة، ثم اجتز الامتحان لتنفتح الوحدة التالية.","After watching, open the unit file, then pass the exam to unlock the next unit.")}</p>` : `<div class="card pad muted">${L("لا فيديو لهذه الوحدة.","No video for this unit.")}</div>`;
   } else if (PL.tab === "file") {
-    el.innerHTML = `<div class="card pdfv"><div class="tb"><b>${L("ملف الوحدة","Unit file")} ${ord(U.n - 1)}</b><span class="muted">${U.pdf_pages ? U.pdf_pages.pages + " " + L("صفحات","pages") : ""}</span>
+    el.innerHTML = `<div class="card pdfv"><div class="tb"><b>${L("ملف الوحدة","Unit file")} ${uLabel(units, U.n)}</b><span class="muted">${U.pdf_pages ? U.pdf_pages.pages + " " + L("صفحات","pages") : ""}</span>
       ${U.pdf_url ? `<a class="btn s" style="margin-inline-start:auto;min-height:40px;padding:0 14px;font-size:18px" href="${esc(U.pdf_url)}" target="_blank" rel="noopener" download>${I.dl}${L("تنزيل الملف","Download file")}</a>` : ""}</div>
       ${U.pdf_pages ? `<div class="pages">${pagesHtml(U.pdf_pages)}</div>` : ""}
       <p class="note">${L("للكتابة في خانات الملف: نزّله وافتحه في برنامج قارئ الملفات مثل أدوبي أكروبات.","To type in the file’s fields, download it and open it in a PDF reader such as Adobe Acrobat.")}</p></div>`;
+  } else if (PL.tab === "practice") {
+    const P = U.practice || {}; const safe = t => esc(t || "").replace(/&lt;b&gt;/g, "<b>").replace(/&lt;\/b&gt;/g, "</b>");
+    const row = (ic, title, t) => t ? `<div class="card post"><div class="hd"><span class="ic3 s ${ic}">${I.star}</span><div><b>${title}</b></div></div><p>${safe(t)}</p></div>` : "";
+    el.innerHTML = `<div class="feed">
+      ${P.clip ? `<div class="card pad"><video src="${esc(P.clip)}" controls playsinline preload="metadata" style="width:100%;border-radius:14px;background:#000"></video>${P.cap ? `<p class="note">${esc(P.cap)}</p>` : ""}</div>` : ""}
+      ${row("", L("ما تراه في المثال","What you see in the example"), P.stage)}${row("copper", L("اصنع بيدك","Make it yourself"), P.make)}${row("sand", L("اختبره","Test it"), P.test)}${row("plum", L("ماذا تحمل إلى الوحدة التالية","What you carry forward"), P.carry)}</div>`;
   } else if (PL.tab === "text") {
     el.innerHTML = `<div class="card txt">${String(tx(U.content) || "").split(/\n{2,}/).map(p => `<p>${esc(p)}</p>`).join("")}</div>`;
   } else await quiz(k, units, U);
@@ -768,7 +794,7 @@ async function quiz(k, units, U, improve){
   if (isPassed && !improve) { el.innerHTML = `<div class="card quiz"><div class="qset"><span>${L("المحاولات المستعملة","Attempts used")}: ${used}${maxA ? " " + L("من","of") + " " + maxA : ""}</span><span>${L("المحاولات المتبقية","Attempts left")}: ${left}</span></div>
       <div class="res ok">${L("اجتزت امتحان هذه الوحدة.","You passed this unit’s exam.")}${best != null ? " " + L("أفضل نتيجة لك","Your best score") + ": " + best + "%" : ""}</div>
       <p class="muted" style="margin:10px 0 0">${canRetake ? L("يمكنك إعادة الامتحان للتحسين بالمحاولات المتبقية. الإعادة لا تلغي نجاحك ولا تقدّمك، وتُحفظ أفضل نتيجة.","You can retake the exam to improve with your remaining attempts. Retakes never undo your pass or progress; your best score is kept.") : L("استنفدت كل المحاولات في هذه الوحدة، ونجاحك وأفضل نتيجة لك محفوظان.","You have used all attempts for this unit; your pass and best score are kept.")}</p>
-      <div class="qbar">${canRetake ? `<button class="btn s" id="improve">${I.quiz}${L("أعد الامتحان للتحسين","Retake to improve")}</button>` : ""}${U.n < units.length ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${ord(U.n)}</button>` : ""}</div></div>`;
+      <div class="qbar">${canRetake ? `<button class="btn s" id="improve">${I.quiz}${L("أعد الامتحان للتحسين","Retake to improve")}</button>` : ""}${U.n < lastN(units) ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${uLabel(units, U.n + 1)}</button>` : ""}</div></div>`;
     const nx = $("#nx"); if (nx) nx.onclick = goNext; const im = $("#improve"); if (im) im.onclick = () => quiz(k, units, U, true); return; }
   if (maxA !== 0 && used >= maxA) { el.innerHTML = `<div class="card quiz">${head}<div class="res no">${L(...ERR.no_attempts_left)}</div></div>`; return; }
   let qs; try { qs = await loadQuestions(U.id); } catch (e) { el.innerHTML = `<div class="card quiz res no">${errMsg(e)}</div>`; return; }
@@ -785,16 +811,16 @@ async function quiz(k, units, U, improve){
     let r; try { r = await rpc("hq_submit_exam", { p_unit: U.id, p_answers: sel }); } catch (e) { s.disabled = false; s.textContent = lbl(view.length); toast(errMsg(e)); return; }
     el.querySelectorAll(".qz").forEach(z => { const ok = r.results && r.results[z.dataset.q]; z.classList.add(ok ? "right" : "wrong"); z.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.classList.contains("sel")) { b.classList.remove("sel"); b.classList.add(ok ? "ok" : "no"); } }); });
     s.remove(); await loadState(k.id);
-    const last = U.n >= units.length;
+    const last = U.n >= lastN(units);
     if (r.improve) {
       const more = r.attempts_left === null || r.attempts_left > 0;
       $("#qres").innerHTML = `<div class="res ${r.score >= U.exam_pass ? "ok" : "no"}">${L("نتيجتك هذه المرة","This time you scored")}: ${r.right} ${L("من","of")} ${r.total} (${r.score}%). ${L("أفضل نتيجة لك","Your best score")}: ${r.best}%.${r.attempts_left !== null ? " " + L("المحاولات المتبقية","Attempts left") + ": " + r.attempts_left : ""}</div>
-        <div class="qbar">${more ? `<button class="btn s" id="again">${L("أعد مرة أخرى","Retake again")}</button>` : ""}${!last ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${ord(U.n)}</button>` : ""}</div>`;
+        <div class="qbar">${more ? `<button class="btn s" id="again">${L("أعد مرة أخرى","Retake again")}</button>` : ""}${!last ? `<button class="btn p" id="nx">${L("الوحدة","Unit")} ${uLabel(units, U.n + 1)}</button>` : ""}</div>`;
       const nx2 = $("#nx"); if (nx2) nx2.onclick = goNext; const ag2 = $("#again"); if (ag2) ag2.onclick = () => quiz(k, units, U, true); return;
     }
     $("#qres").innerHTML = `<div class="res ${r.passed ? "ok" : "no"}">${r.passed ? L("نجحت","Passed") : L("لم تصل إلى النسبة المطلوبة","Below the pass mark")}: ${r.right} ${L("من","of")} ${r.total} (${r.score}%).
       ${!r.passed && r.attempts_left !== null ? " " + L("المحاولات المتبقية","Attempts left") + ": " + r.attempts_left : ""}</div>
-      <div class="qbar">${r.passed && (r.attempts_left === null || r.attempts_left > 0) ? `<button class="btn s" id="improve2">${I.quiz}${L("أعد للتحسين","Retake to improve")}</button>` : ""}${r.passed ? (r.certificate ? `<a class="btn g" href="#/cert/${k.id}">${L("اعرض شهادتي","View my certificate")}</a>` : !last ? `<button class="btn p" id="nx">${L("انتقل إلى الوحدة","Go to unit")} ${ord(U.n)}</button>` : "") : (r.attempts_left === 0 ? "" : `<button class="btn s" id="again">${L("أعد المحاولة","Try again")}</button>`)}
+      <div class="qbar">${r.passed && (r.attempts_left === null || r.attempts_left > 0) ? `<button class="btn s" id="improve2">${I.quiz}${L("أعد للتحسين","Retake to improve")}</button>` : ""}${r.passed ? (r.certificate ? `<a class="btn g" href="#/cert/${k.id}">${L("اعرض شهادتي","View my certificate")}</a>` : !last ? `<button class="btn p" id="nx">${L("انتقل إلى الوحدة","Go to unit")} ${uLabel(units, U.n + 1)}</button>` : "") : (r.attempts_left === 0 ? "" : `<button class="btn s" id="again">${L("أعد المحاولة","Try again")}</button>`)}
       <button class="btn s" id="rate">${I.star}${L("قيّم هذه الوحدة","Rate this unit")}</button></div>`;
     const nx = $("#nx"); if (nx) nx.onclick = goNext;
     const ag = $("#again"); if (ag) ag.onclick = () => quiz(k, units, U);
@@ -811,12 +837,13 @@ function bindSide(k, units){
 }
 async function spaceBody(k, units){
   const el = $("#spaceBody"); if (!el) return;
+  if (PL.space === "wb") { await workbook(k, el); return; }
   if (PL.space === "news") {
     const { data, error } = await sb.from("hq_announcements").select("*").eq("kit_id", k.id).order("pinned", { ascending: false }).order("created_at", { ascending: false });
     if (error) { el.innerHTML = errMsg(error); return; }
     el.innerHTML = data.length ? `<div class="feed">${data.map(x => `<article class="card post"><div class="hd"><span class="ic3 s copper">${I.megaphone}</span><div><b>${esc(tx(x.title))}</b><small>${L("المدرب","Trainer")} · ${fmtDate(x.created_at)}</small></div>${x.pinned ? `<span class="pin">${L("مثبّت","Pinned")}</span>` : ""}</div><p>${esc(tx(x.body))}</p></article>`).join("")}</div>` : `<p class="muted">${L("لا إعلانات بعد.","No announcements yet.")}</p>`;
   } else if (PL.space === "lib") {
-    const items = units.filter(u => u.pdf_url || u.pdf_pages).map(u => ({ t: L("ملف الوحدة","Unit file") + " " + ord(u.n - 1), s: tx(u.title), n: u.n, c: "" }))
+    const items = units.filter(u => u.pdf_url || u.pdf_pages).map(u => ({ t: L("ملف الوحدة","Unit file") + " " + uLabel(units, u.n), s: tx(u.title), n: u.n, c: "" }))
       .concat((k.files || []).map((f, i) => ({ t: tx(f.title), s: tx(f.sub), f: i, c: ["copper","sand","plum"][i % 3] })));
     el.innerHTML = `<p class="muted" style="margin:0 0 12px">${L("كل ملفات الحقيبة في مكان واحد.","All kit files in one place.")}</p><div class="lib">${items.map(x => `<button class="fi lift" ${x.n ? `data-n="${x.n}"` : `data-f="${x.f}"`}><span class="ic3 s ${x.c}">${I.file}</span><span><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span></button>`).join("")}</div><div id="libView" style="margin-top:16px"></div>`;
     el.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { PL.space = "content"; PL.tab = "file"; location.hash = "#/learn/" + k.id + "/" + b.dataset.n; render(); });
@@ -829,8 +856,8 @@ async function spaceBody(k, units){
     if (PL.openFile !== undefined && PL.openFile !== null) { const i = PL.openFile; PL.openFile = null; showFile(i); }
   } else if (PL.space === "fb") {
     let mine = {}; try { mine = await rpc("hq_my_feedback", { p_kit: k.id }); } catch (e) {}
-    let fu = PL.fbUnit != null ? PL.fbUnit : (PL.unit || 0);
-    const parts = [[0, L("الحقيبة كلها","The whole kit")]].concat(units.map(u => [u.n, L("الوحدة","Unit") + " " + u.n]));
+    let fu = PL.fbUnit != null ? PL.fbUnit : (PL.unit != null && PL.unit >= 0 ? PL.unit : -1);
+    const parts = [[-1, L("الحقيبة كلها","The whole kit")]].concat(units.map(u => [u.n, L("الوحدة","Unit") + " " + u.n]));
     const draw = (editing) => {
       const done = mine[fu];
       const chips = parts.map(p => `<button data-v="${p[0]}" class="${p[0] === fu ? "on" : ""}">${mine[p[0]] ? "✓ " : ""}${p[1]}</button>`).join("");
@@ -864,11 +891,74 @@ async function bindLearn(id){
   document.querySelectorAll("#space button").forEach(b => b.onclick = () => { PL.space = b.dataset.s; if (b.dataset.s !== "fb") PL.fbUnit = null; render(); });
   if (PL.space !== "content") { await spaceBody(k, units); return; }
   bindSide(k, units);
-  const t1 = $("#toU1"); if (t1) t1.onclick = () => { PL.tab = "video"; location.hash = "#/learn/" + k.id + "/1"; };
+  const t1 = $("#toU1"); if (t1) t1.onclick = () => { PL.tab = "video"; location.hash = "#/learn/" + k.id + "/" + firstN(units); };
   document.querySelectorAll("[data-intro-file]").forEach(b => b.onclick = () => { PL.space = "lib"; PL.openFile = +b.dataset.introFile; render(); });
-  if (PL.unit === 0) return;
+  if (PL.unit === -1) return;
   document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { PL.tab = b.dataset.t; document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("on", x === b)); pane(k, units); });
   await pane(k, units);
+}
+
+
+/* الكراسة التفاعلية: مصدرها ملف مسار، وإجابات المتدرب تُحفظ في حسابه */
+const WBC = {};
+async function workbook(k, el){
+  el.innerHTML = spinner();
+  let W;
+  try { if (!WBC[k.id]) { const r = await fetch(k.workbook.src, { cache: "no-cache" }); if (!r.ok) throw new Error("wb " + r.status); WBC[k.id] = await r.json(); } W = WBC[k.id]; }
+  catch (e) { el.innerHTML = `<div class="card pad res no">${L("تعذّر تحميل الكراسة. حدّث الصفحة.","Couldn’t load the workbook. Refresh the page.")}</div>`; return; }
+  let A = {}; try { const { data } = await sb.from("hq_workbook_answers").select("data").eq("user_id", S.user.id).eq("kit_id", k.id).maybeSingle(); A = (data && data.data) || {}; } catch (e) {}
+  const base = k.workbook.base || "";
+  let timer = null, status = null;
+  const setStatus = t => { status = status || $("#wbStatus"); if (status) status.textContent = t; };
+  const save = () => { setStatus(L("جارٍ الحفظ…","Saving…")); clearTimeout(timer); timer = setTimeout(async () => { try { await rpc("hq_save_workbook", { p_kit: k.id, p_data: A }); setStatus(L("✓ محفوظة في حسابك","✓ Saved to your account")); } catch (e) { setStatus(L("⚠️ لم تُحفظ، تحقق من الاتصال","⚠️ Not saved, check your connection")); } }, 1200); };
+  const findF = id => { for (const sh of W.sheets) for (const g of sh.groups) for (const f of g.fields) if (f.id === id) return f; };
+  const field = f => {
+    const lab = f.label ? `<label class="wl">${esc(f.label)}${f.hint ? ` <span class="muted">${esc(f.hint)}</span>` : ""}</label>` : "";
+    let exl = (f.ex && f.ex.length) ? f.ex.slice() : []; if (!exl.length && typeof f.sample === "string" && !f.from) exl = [f.sample]; f._ex = exl;
+    let exb = exl.length ? `<button type="button" class="exb" data-ex="${f.id}">💡 ${L("أمثلة","Examples")}</button><div class="exs" id="ex-${f.id}" hidden>${exl.map((e, i) => `<button type="button" data-f="${f.id}" data-i="${i}">${esc(e)}</button>`).join("")}</div>` : "";
+    if (f.compose) exb = `<button type="button" class="exb" data-compose="${f.id}">✨ ${L("ركّب من إجاباتك","Compose from your answers")}</button><button type="button" class="exb" data-copy="${f.id}">📋 ${L("انسخ","Copy")}</button>` + exb;
+    if (f.from) exb = `<button type="button" class="exb" data-from="${f.id}">↩ ${L("انقل من الأوراق السابقة","Bring from earlier sheets")}</button>` + exb;
+    if (f.type === "text") return `<div class="wf">${lab}<input type="text" data-id="${f.id}" value="${esc(A[f.id])}"><div class="wbx">${exb}</div></div>`;
+    if (f.type === "area") return `<div class="wf">${lab}<textarea rows="3" data-id="${f.id}">${esc(A[f.id])}</textarea><div class="wbx">${exb}</div></div>`;
+    if (f.type === "choice" || f.type === "multi") { const v = A[f.id] || (f.type === "multi" ? [] : ""); return `<div class="wf">${lab}<div class="chips chs" data-id="${f.id}" data-multi="${f.type === "multi" ? 1 : 0}">${f.options.map(o => `<button type="button" class="${(f.type === "multi" ? v.includes(o) : v === o) ? "on" : ""}">${esc(o)}</button>`).join("")}</div></div>`; }
+    if (f.type === "checks") { const v = A[f.id] || []; return `<div class="wf">${lab}<div class="cks" data-id="${f.id}">${f.options.map((o, i) => `<label><input type="checkbox" data-i="${i}" ${v.includes(i) ? "checked" : ""}> ${esc(o)}</label>`).join("")}</div></div>`; }
+    if (f.type === "yesno") { const v = A[f.id] || []; return `<div class="wf">${lab}<div class="tw"><table><tr><th>${L("السؤال","Question")}</th><th>${L("نعم","Yes")}</th><th>${L("لا","No")}</th></tr>${f.rows.map((r, i) => `<tr><td style="white-space:normal">${esc(r)}</td>${["نعم","لا"].map(a => `<td><input type="radio" name="${f.id}${i}" data-id="${f.id}" data-i="${i}" value="${a}" ${v[i] === a ? "checked" : ""}></td>`).join("")}</tr>`).join("")}</table></div></div>`; }
+    if (f.type === "table") { const v = A[f.id] || []; return `<div class="wf">${lab}${f.sample ? `<button type="button" class="exb" data-tsample="${f.id}">💡 ${L("املأ بالمثال","Fill with the example")}</button>` : ""}<div class="tw"><table class="wt"><tr><th>#</th>${f.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr>${Array.from({ length: f.rows }, (_, r) => `<tr><td>${r + 1}</td>${f.cols.map((c, ci) => `<td><textarea rows="2" data-id="${f.id}" data-r="${r}" data-c="${ci}">${esc((v[r] || [])[ci])}</textarea></td>`).join("")}</tr>`).join("")}</table></div></div>`; }
+    if (f.type === "score") { const v = A[f.id] || { imp: [], a: [], b: [] }; const opt = (kk, r, vals) => `<select data-id="${f.id}" data-k="${kk}" data-r="${r}"><option value=""></option>${vals.map(x => `<option ${String(v[kk][r]) === String(x) ? "selected" : ""}>${x}</option>`).join("")}</select>`; const sum = kk => v[kk].reduce((a, b) => a + (+b || 0), 0);
+      return `<div class="wf">${lab}<div class="tw"><table class="wt"><tr><th>${L("المعيار","Criterion")}</th><th>${L("الأهمية","Weight")}</th><th>(أ)</th><th>(ب)</th></tr>${f.rows.map((r, i) => `<tr><td style="white-space:normal">${esc(r)}</td><td>${opt("imp", i, ["عالية","متوسطة"])}</td><td>${opt("a", i, [1,2,3,4,5])}</td><td>${opt("b", i, [1,2,3,4,5])}</td></tr>`).join("")}<tr><td><b>${L("المجموع","Total")}</b></td><td></td><td><b>${sum("a")}</b></td><td><b>${sum("b")}</b></td></tr></table></div></div>`; }
+    return "";
+  };
+  const draw = () => {
+    const gl = W.glossary || [], vid = W.video;
+    el.innerHTML = `<div class="card pad" style="margin-bottom:12px"><h2 class="fa" style="font-size:28px">${esc(W.title || L("الكراسة التفاعلية","Interactive workbook"))}</h2>
+        ${W.example ? `<p class="muted" style="margin:4px 0 8px">${L("النموذج المحلول","Solved example")}: ${esc(W.example)}</p>` : ""}
+        <div class="qbar" style="margin-top:4px"><button class="btn s" id="wbSample">💡 ${L("اعرض النموذج المحلول كاملًا","Show the full solved example")}</button><button class="btn s" id="wbPrint">🖨 ${L("اطبع","Print")}</button><button class="btn s" id="wbClear">${L("امسح إجاباتي","Clear my answers")}</button><span class="muted" id="wbStatus" style="font-size:16px">${L("إجاباتك تُحفظ تلقائيًا في حسابك","Your answers save automatically")}</span></div>
+        <nav class="chips" style="margin-top:10px">${W.sheets.map(sh => `<a class="pill" style="text-decoration:none;font-size:16px;padding:4px 12px" href="javascript:void(0)" data-go="s${sh.n}">${sh.n}. ${esc(sh.title)}</a>`).join("")}</nav>
+        ${vid && vid.src ? `<video src="${esc(/^https?:/.test(vid.src) ? vid.src : base + vid.src)}" controls playsinline preload="metadata" style="width:100%;max-width:640px;border-radius:14px;background:#000;margin-top:12px"></video>${vid.cap ? `<p class="note">${esc(vid.cap)}</p>` : ""}` : ""}
+        ${gl.length ? `<details class="card post" style="margin-top:12px;padding:0"><summary style="cursor:pointer;padding:12px 16px;font-weight:700;color:var(--ink)">📖 ${L("قاموس المصطلحات","Glossary")} (${gl.length})</summary><div style="padding:0 16px 12px;display:grid;gap:8px">${gl.map(g => `<div><b style="color:var(--ink)">${esc(g[0])}</b>${g.length > 2 ? ` <small class="muted">(${L("الوحدة","Unit")} ${esc(g[2])})</small>` : ""}<br>${esc(g[1])}</div>`).join("")}</div></details>` : ""}</div>
+      <div id="wbSheets">${W.sheets.map(sh => `<section class="card pad wsheet" id="s${sh.n}" style="margin-bottom:12px"><span class="pill">${esc(sh.unit || "")}</span><h3 style="font-size:24px;margin:6px 0">${L("الورقة","Sheet")} ${sh.n} · ${esc(sh.title)}</h3>${sh.groups.map(g => `<div class="wg"><h4 style="color:var(--ink);margin:14px 0 6px;font-size:20px">${esc(g.title)}</h4>${g.fields.map(field).join("")}</div>`).join("")}</section>`).join("")}</div>`;
+    bind();
+  };
+  const bind = () => {
+    status = null;
+    el.querySelectorAll("[data-go]").forEach(a => a.onclick = () => { const t = document.getElementById(a.dataset.go); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); });
+    el.querySelectorAll('input[type=text][data-id],textarea[data-id]:not([data-r])').forEach(x => x.oninput = () => { A[x.dataset.id] = x.value; save(); });
+    el.querySelectorAll("textarea[data-r]").forEach(x => x.oninput = () => { const id = x.dataset.id; A[id] = A[id] || []; A[id][+x.dataset.r] = A[id][+x.dataset.r] || []; A[id][+x.dataset.r][+x.dataset.c] = x.value; save(); });
+    el.querySelectorAll(".chs").forEach(g => g.querySelectorAll("button").forEach(b => b.onclick = () => { const id = g.dataset.id, val = b.textContent; if (g.dataset.multi === "1") { A[id] = A[id] || []; const i = A[id].indexOf(val); i < 0 ? A[id].push(val) : A[id].splice(i, 1); b.classList.toggle("on"); } else { A[id] = val; g.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); } save(); }));
+    el.querySelectorAll(".cks input").forEach(c => c.onchange = () => { const box = c.closest(".cks"), id = box.dataset.id; A[id] = [...box.querySelectorAll("input")].map((x, i) => x.checked ? i : -1).filter(i => i >= 0); save(); });
+    el.querySelectorAll("input[type=radio]").forEach(r => r.onchange = () => { const id = r.dataset.id; A[id] = A[id] || []; A[id][+r.dataset.i] = r.value; save(); });
+    el.querySelectorAll("select[data-id]").forEach(sl => sl.onchange = () => { const id = sl.dataset.id; A[id] = A[id] || { imp: [], a: [], b: [] }; A[id][sl.dataset.k][+sl.dataset.r] = sl.value; save(); draw(); });
+    el.querySelectorAll("[data-ex]").forEach(b => b.onclick = () => { const box = document.getElementById("ex-" + b.dataset.ex); box.hidden = !box.hidden; });
+    el.querySelectorAll(".exs button").forEach(b => b.onclick = () => { const f = findF(b.dataset.f); A[f.id] = f._ex[+b.dataset.i]; save(); draw(); });
+    el.querySelectorAll("[data-tsample]").forEach(b => b.onclick = () => { const f = findF(b.dataset.tsample); A[f.id] = JSON.parse(JSON.stringify(f.sample)); save(); draw(); });
+    el.querySelectorAll("[data-from]").forEach(b => b.onclick = () => { const f = findF(b.dataset.from); const v = A[f.from]; if (v) { A[f.id] = v; save(); draw(); } else toast(L("عبّئ الخانة الأصلية في الورقة السابقة أولًا","Fill the original field in the earlier sheet first")); });
+    el.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => { const t = A[b.dataset.copy] || ""; if (!t) { toast(L("ركّب النص أولًا","Compose the text first")); return; } try { await navigator.clipboard.writeText(t); toast(L("نُسخ","Copied")); } catch (e) { toast(t.slice(0, 120)); } });
+    el.querySelectorAll("[data-compose]").forEach(b => b.onclick = () => { const f = findF(b.dataset.compose); const v = kk => { const x = A[kk]; if (Array.isArray(x)) return x.filter(r => Array.isArray(r) && r.some(c => (c || "").trim())).map(r => r.map(c => (c || "").trim()).join(" | ")).join(" · "); return (x || "").toString().trim(); }; A[f.id] = f.compose.replace(/\{(\w+)\}/g, (m, kk) => v(kk) || "(" + kk + ")"); save(); draw(); });
+    $("#wbSample").onclick = () => { if (Object.keys(A).length && !confirm(L("سيستبدل النموذج المحلول إجاباتك الحالية. متابعة؟","The solved example will replace your current answers. Continue?"))) return; A = {}; for (const sh of W.sheets) for (const g of sh.groups) for (const f of g.fields) if (f.sample !== undefined) A[f.id] = JSON.parse(JSON.stringify(f.sample)); save(); draw(); };
+    $("#wbClear").onclick = () => { if (confirm(L("امسح كل إجاباتك في الكراسة؟","Clear all your workbook answers?"))) { A = {}; save(); draw(); } };
+    $("#wbPrint").onclick = () => window.print();
+  };
+  draw();
 }
 
 /* الشهادة */
@@ -1014,11 +1104,11 @@ async function adminBody(){
     } else if (AT === "fb") {
       const data = await rpc("hq_owner_feedback");
       if (!data.length) { el.innerHTML = `<p class="muted">${L("لا آراء بعد.","No feedback yet.")}</p>`; return; }
-      const groups = {}; data.forEach(f => { const key = f.kit_id + "|" + (f.unit_n || 0); (groups[key] = groups[key] || []).push(f); });
+      const groups = {}; data.forEach(f => { const key = f.kit_id + "|" + (f.unit_n ?? -1); (groups[key] = groups[key] || []).push(f); });
       const summary = Object.entries(groups).sort().map(([key, arr]) => { const [kid, un] = key.split("|"); const rated = arr.filter(f => f.rating); const avg = rated.length ? (rated.reduce((a, f) => a + f.rating, 0) / rated.length) : 0;
-        return `<tr><td>${esc(tx((kit(kid) || {}).name))}</td><td>${+un ? L("الوحدة","Unit") + " " + un : L("الحقيبة كلها","Whole kit")}</td><td><b style="color:var(--acc)">${avg ? "★ " + avg.toFixed(1) : "—"}</b></td><td>${arr.length}</td></tr>`; }).join("");
+        return `<tr><td>${esc(tx((kit(kid) || {}).name))}</td><td>${+un >= 0 ? L("الوحدة","Unit") + " " + un : L("الحقيبة كلها","Whole kit")}</td><td><b style="color:var(--acc)">${avg ? "★ " + avg.toFixed(1) : "—"}</b></td><td>${arr.length}</td></tr>`; }).join("");
       el.innerHTML = `<div class="card tw" style="margin-bottom:16px"><table><tr><th>${L("الحقيبة","Kit")}</th><th>${L("الجزء","Part")}</th><th>${L("متوسط التقييم","Average rating")}</th><th>${L("عدد الآراء","Responses")}</th></tr>${summary}</table></div>
-        <div class="feed">${data.map(f => `<article class="card post"><div class="hd"><span class="ic3 s plum">${I.star}</span><div><b>${esc(f.name || f.email || "—")} · <span style="color:var(--acc)">${f.rating ? "★".repeat(f.rating) : "—"}</span></b><small>${esc(tx((kit(f.kit_id) || {}).name))}${f.unit_n ? " · " + L("الوحدة","Unit") + " " + f.unit_n : " · " + L("الحقيبة كلها","Whole kit")} · ${fmtDate(f.created_at)}</small></div></div>${f.note ? `<p>${esc(f.note)}</p>` : ""}</article>`).join("")}</div>`;
+        <div class="feed">${data.map(f => `<article class="card post"><div class="hd"><span class="ic3 s plum">${I.star}</span><div><b>${esc(f.name || f.email || "—")} · <span style="color:var(--acc)">${f.rating ? "★".repeat(f.rating) : "—"}</span></b><small>${esc(tx((kit(f.kit_id) || {}).name))}${f.unit_n >= 0 ? " · " + L("الوحدة","Unit") + " " + f.unit_n : " · " + L("الحقيبة كلها","Whole kit")} · ${fmtDate(f.created_at)}</small></div></div>${f.note ? `<p>${esc(f.note)}</p>` : ""}</article>`).join("")}</div>`;
     } else if (AT === "index" || AT === "guide") {
       const { data, error } = await sb.from("hq_docs").select("body,updated_at").eq("id", AT).maybeSingle(); if (error) throw error;
       if (!data) { el.innerHTML = `<p class="muted">${L("لا إندكس محفوظ بعد.","No index saved yet.")}</p>`; return; }
@@ -1047,7 +1137,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261019061028";
+const BUILD = "20261102204408";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
@@ -1097,6 +1187,7 @@ addEventListener("hashchange", () => {
     setTimeout(async () => { if (uid) await afterSignIn(session); else { lastUid = null; await onSession(null); render(); } }, 0);
   });
 })();
+
 
 </script>
 </body>
