@@ -576,6 +576,7 @@ async function vGroup(id){
 async function vLanding(id){
   const k = kit(id); if (!k) return `<div class="wrap"><div class="card auth"><h1>${L("الحقيبة غير موجودة","Kit not found")}</h1></div></div>`;
   const units = await loadUnits(id); const st = S.user ? await loadState(id) : null; const has = st && st.enrolled; const lp = k.landing || {};
+  let claim = null; if (S.user && !has && k.access !== "free") { try { const { data } = await sb.from("hq_discount_claims").select("percent").eq("user_id", S.user.id).eq("kit_id", id).maybeSingle(); claim = data; } catch (e) {} }
   let cta;
   if (has) cta = `<a class="btn p" href="#/learn/${id}">${(st.passed || []).length ? L("أكمل من حيث توقفت","Continue where you left off") : L("ادخل الحقيبة","Enter the kit")}</a>`;
   else if (!S.user) cta = `<a class="btn p" href="#/login?next=p/${id}">${k.access === "free" ? L("سجّل مجانًا وابدأ","Sign up free and start") : L("سجّل الدخول للشراء أو التفعيل","Sign in to buy or activate")}</a>`;
@@ -604,7 +605,7 @@ async function vLanding(id){
       ${lp.rights ? `<p class="muted" style="font-size:15px;margin-top:18px">© ${esc(tx(lp.rights))}</p>` : ""}
     </div>
     <aside class="card buy stitch"><div class="cv">${k.cover_url ? `<img src="${esc(k.cover_url)}" alt="">` : ""}</div><div class="in">
-      <div class="pr">${esc(tx(k.price))}</div><div class="muted">${L("وصول دائم، وتحديثات الحقيبة مجانًا","Lifetime access, free kit updates")}</div>${cta}</div></aside></section></div></div>${foot()}`;
+      <div class="pr">${claim && k.price_usd ? `<s class="muted" style="font-size:24px">${k.price_usd}$</s> ${Math.round(k.price_usd * (100 - claim.percent)) / 100}$ <span class="pill" style="font-size:15px">${L("خصمك","Your discount")} ${claim.percent}%</span>` : esc(tx(k.price))}</div><div class="muted">${L("وصول دائم، وتحديثات الحقيبة مجانًا","Lifetime access, free kit updates")}</div>${cta}</div></aside></section></div></div>${foot()}`;
 }
 function bindLanding(id){
   document.querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
@@ -616,9 +617,21 @@ function bindLanding(id){
         const box = b.parentElement; let p = box.querySelector(".buyinfo"); if (!p) { p = document.createElement("div"); p.className = "buyinfo"; p.style.marginTop = "10px"; box.insertBefore(p, b.nextSibling); }
         p.innerHTML = `<div class="res" style="background:var(--asoft);color:var(--ink);font-weight:400">${L("الشراء المباشر داخل المنصة يُفعَّل قريبًا.","Direct purchase on the platform is coming soon.")} ${links ? L("للحصول على الحقيبة الآن تواصل مع المدرب، وسيرسل لك كود وصول.","To get the kit now, contact the trainer and you will receive an access code.") : L("إن كان لديك كود وصول من المدرب، اضغط «عندي كود وصول».","If you have an access code from the trainer, press “I have an access code”.")}</div>${links ? `<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${links}</div>` : ""}`; }
       if (a === "code") { const cb = b.parentElement.querySelector(".codebox"); if (cb) { cb.classList.toggle("on"); const inp = cb.querySelector("input"); if (inp) inp.focus(); } }
-      if (a === "redeem") { const inp = b.parentElement.querySelector("input"); const k2 = await rpc("hq_redeem_code", { p_code: inp ? inp.value : "" }); toast(L("تم تفعيل الحقيبة","Kit activated")); location.hash = "#/learn/" + k2; }
+      if (a === "redeem") { const inp = b.parentElement.querySelector("input"); const r = await rpc("hq_redeem_code", { p_code: inp ? inp.value : "" }); await afterRedeem(r, b.closest(".in, .done-card") || b.parentElement.parentElement); }
     } catch (e) { b.disabled = false; toast(errMsg(e)); }
   });
+}
+
+
+/* نتيجة إدخال كود: كود مجاني يفتح الحقيبة، وكود خصم يُحجز للدفع */
+async function afterRedeem(r, box){
+  if (!r || r.type === "access") { toast(L("تم تفعيل الحقيبة","Kit activated")); await loadCatalog(); location.hash = "#/learn/" + (r ? r.kit : ""); return; }
+  const k = kit(r.kit) || { name: { ar: "" } }, c = S.contact || {};
+  const msg = encodeURIComponent(L("السلام عليكم، أريد شراء حقيبة «","Hello, I would like to buy the kit “") + tx(k.name) + L("» بكود خصم ","” with a ") + r.percent + "%" + L(".", " discount code."));
+  const links = (c.whatsapp ? `<a class="btn g" target="_blank" rel="noopener" href="https://wa.me/${c.whatsapp}?text=${msg}">${L("تواصل عبر واتساب","Contact on WhatsApp")}</a>` : "") + (c.email ? `<a class="btn s" href="mailto:${esc(c.email)}?subject=${msg}">${L("تواصل بالبريد","Contact by email")}</a>` : "");
+  const html = `<div class="res ok" style="margin-top:10px">${L("كود خصم","Discount code")} ${r.percent}% ✓ ${r.price_after != null ? L("سعرك بعد الخصم:","Your price after discount:") + ` <b>${r.price_after}$</b> ` + L("بدل","instead of") + ` ${r.price}$.` : ""}</div>
+    <div class="res" style="background:var(--asoft);color:var(--ink);font-weight:400;margin-top:8px">${L("حُفظ الخصم في حسابك، ويُحتسب عند الشراء. الشراء المباشر داخل المنصة يُفعَّل قريبًا.","The discount is saved to your account and applies at purchase. Direct purchase is coming soon.")}</div>${links ? `<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${links}</div>` : ""}`;
+  if (box) { let p = box.querySelector(".redeeminfo"); if (!p) { p = document.createElement("div"); p.className = "redeeminfo"; box.appendChild(p); } p.innerHTML = html; } else toast(L("حُفظ الخصم في حسابك","Discount saved"));
 }
 
 /* الدخول برمز البريد */
@@ -1060,20 +1073,21 @@ async function adminBody(){
         try {
           const rows = await rpc("hq_owner_codes", { p_kit: kid }), now = Date.now();
           const st = r => r.expires_at && new Date(r.expires_at) < now ? ["none", L("منتهٍ","Expired")] : (r.max_uses && r.uses >= r.max_uses ? ["rev", L("مستعمل","Used")] : ["okk", L("صالح","Valid")]);
-          body.innerHTML = `<div class="tw"><table><tr><th>${L("الكود","Code")}</th><th>${L("الحالة","Status")}</th><th>${L("الاستعمال","Uses")}</th><th>${L("ينتهي","Expires")}</th><th>${L("استعمله","Used by")}</th><th></th></tr>
-            ${rows.map(r => { const s2 = st(r); return `<tr><td><span class="vcode">${esc(r.code)}</span></td><td><span class="st ${s2[0]}">${s2[1]}</span></td><td>${r.uses} / ${r.max_uses || "∞"}</td><td>${r.expires_at ? fmtDate(r.expires_at) : L("بلا انتهاء","Never")}</td><td style="white-space:normal;font-size:16px">${esc(r.used_by || "—")}</td>
-              <td><button class="btn s" style="min-height:34px;padding:0 10px;font-size:15px" data-copy-code="${esc(r.code)}">${L("انسخ","Copy")}</button> <button class="btn s" style="min-height:34px;padding:0 10px;font-size:15px" data-del-code="${esc(r.code)}">${L("احذف","Delete")}</button></td></tr>`; }).join("") || `<tr><td colspan="6" class="muted">${L("لا أكواد بعد.","No codes yet.")}</td></tr>`}</table></div>
+          body.innerHTML = `<div class="tw"><table><tr><th>${L("الكود","Code")}</th><th>${L("النوع","Type")}</th><th>${L("الحالة","Status")}</th><th>${L("الاستعمال","Uses")}</th><th>${L("ينتهي","Expires")}</th><th>${L("استعمله","Used by")}</th><th></th></tr>
+            ${rows.map(r => { const s2 = st(r); return `<tr><td><span class="vcode">${esc(r.code)}</span></td><td>${r.percent >= 100 ? `<span class="st okk">${L("مجاني","Free")}</span>` : `<span class="st rev">${L("خصم","Discount")} ${r.percent}%</span>`}</td><td><span class="st ${s2[0]}">${s2[1]}</span></td><td>${r.percent >= 100 ? r.uses + " / " + (r.max_uses || "∞") : r.claims + " " + L("حجز","claimed")}</td><td>${r.expires_at ? fmtDate(r.expires_at) : L("بلا انتهاء","Never")}</td><td style="white-space:normal;font-size:16px">${esc(r.used_by || "—")}</td>
+              <td><button class="btn s" style="min-height:34px;padding:0 10px;font-size:15px" data-copy-code="${esc(r.code)}">${L("انسخ","Copy")}</button> <button class="btn s" style="min-height:34px;padding:0 10px;font-size:15px" data-del-code="${esc(r.code)}">${L("احذف","Delete")}</button></td></tr>`; }).join("") || `<tr><td colspan="7" class="muted">${L("لا أكواد بعد.","No codes yet.")}</td></tr>`}</table></div>
             <div class="set"><b>${L("ولّد أكوادًا جديدة","Generate new codes")}</b><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <div class="chips" data-g="p">${[[100,L("مجاني","Free")],[50,"50%"],[40,"40%"],[30,"30%"],[20,"20%"],[10,"10%"]].map((v, i) => `<button data-v="${v[0]}" class="${i === 0 ? "on" : ""}">${v[0] < 100 ? L("خصم ","−") : ""}${v[1]}</button>`).join("")}</div>
               <div class="chips" data-g="n">${[1,5,10].map((v, i) => `<button data-v="${v}" class="${i === 1 ? "on" : ""}">${v}</button>`).join("")}</div>
               <div class="chips" data-g="u">${[[1,L("مرة لكل كود","Once each")],[0,L("بلا حد","Unlimited")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 0 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
               <div class="chips" data-g="e">${[[30,L("شهر","1 month")],[60,L("شهران","2 months")],[0,L("بلا انتهاء","Never")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 1 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
               <button class="btn g" data-gen="${kid}" style="min-height:40px">${L("ولّد","Generate")}</button></div></div>
-            <p class="muted" style="font-size:16px;margin:8px 0 0">${L("أرسل الكود للشخص؛ يفتح «حقائبي» أو صفحة الحقيبة، ويضغط «عندي كود وصول»، ويكتبه.","Send the code; they open “My kits” or the kit page, press “I have an access code” and type it.")}</p>`;
+            <p class="muted" style="font-size:16px;margin:8px 0 0">${L("الكود «المجاني» يفتح الحقيبة فورًا. كود «الخصم» لا يفتحها، بل يُحفظ في حساب المتدرب ويُظهر له سعره بعد الخصم، ويُحتسب عند الشراء. أرسل الكود للشخص؛ يفتح «حقائبي» أو صفحة الحقيبة، ويضغط «عندي كود وصول»، ويكتبه.","A “Free” code opens the kit immediately. A “Discount” code doesn’t open it; it is saved to the trainee’s account, shows the discounted price, and applies at purchase.")}</p>`;
           body.querySelectorAll(".chips button").forEach(b => b.onclick = () => b.parentElement.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)));
           body.querySelectorAll("[data-copy-code]").forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copyCode); toast(L("نُسخ الكود","Code copied")); } catch (e) { toast(b.dataset.copyCode); } });
           body.querySelectorAll("[data-del-code]").forEach(b => b.onclick = async () => { if (!confirm(L("حذف هذا الكود؟ من فعّله سابقًا يبقى وصوله.","Delete this code? People who already used it keep access."))) return; try { await rpc("hq_owner_delete_code", { p_code: b.dataset.delCode }); loadCodes(box); } catch (e) { toast(errMsg(e)); } });
           const g = body.querySelector("[data-gen]"); g.onclick = async () => { const pk = n => body.querySelector(`.chips[data-g="${n}"] .on`).dataset.v; g.disabled = true;
-            try { await rpc("hq_owner_make_codes", { p_kit: kid, p_count: +pk("n"), p_max_uses: +pk("u"), p_days: +pk("e") }); toast(L("وُلّدت الأكواد","Codes generated")); loadCodes(box); } catch (e) { g.disabled = false; toast(errMsg(e)); } };
+            try { await rpc("hq_owner_make_codes", { p_kit: kid, p_count: +pk("n"), p_max_uses: +pk("u"), p_days: +pk("e"), p_percent: +pk("p") }); toast(L("وُلّدت الأكواد","Codes generated")); loadCodes(box); } catch (e) { g.disabled = false; toast(errMsg(e)); } };
         } catch (e) { body.innerHTML = `<div class="res no">${errMsg(e)}</div>`; }
       };
       el.querySelectorAll("details.kcodes").forEach(d => d.addEventListener("toggle", () => { if (d.open) loadCodes(d); }));
@@ -1162,7 +1176,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261104073258";
+const BUILD = "20261104073725";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
@@ -1182,7 +1196,7 @@ async function render(){
     else if (r === "g") html = await vGroup(parts[1]);
     else if (r === "p") { html = await vLanding(parts[1]); after = () => bindLanding(parts[1]); }
     else if (r === "login") { html = vLogin(); after = bindLogin; }
-    else if (r === "my") { html = await vMy(); after = () => { const b = $("#myRedeem"); if (b) b.onclick = async () => { b.disabled = true; try { const k2 = await rpc("hq_redeem_code", { p_code: $("#myCode").value }); toast(L("تم تفعيل الحقيبة","Kit activated")); await loadCatalog(); location.hash = "#/learn/" + k2; } catch (e) { b.disabled = false; toast(errMsg(e)); } }; }; }
+    else if (r === "my") { html = await vMy(); after = () => { const b = $("#myRedeem"); if (b) b.onclick = async () => { b.disabled = true; try { const r = await rpc("hq_redeem_code", { p_code: $("#myCode").value }); b.disabled = false; await afterRedeem(r, b.closest(".card")); } catch (e) { b.disabled = false; toast(errMsg(e)); } }; }; }
     else if (r === "learn") { html = await vLearn(parts[1], parts[2]); after = () => bindLearn(parts[1]); }
     else if (r === "cert") { html = await vCert(parts[1]); after = () => bindCert(parts[1]); }
     else if (r === "verify") html = await vVerify(parts[1]);
