@@ -1118,6 +1118,8 @@ async function adminBody(){
           <label class="f" for="gem">${L("البريد","Email")}</label><input type="email" id="gem" dir="ltr"><label class="f">${L("الحقيبة","Kit")}</label>${kitChips("gk")}
           <button class="btn g" id="grant" style="margin-top:14px">${L("امنح الوصول","Grant access")}</button></div>
         <div class="card pad"><h3>${L("أكواد الوصول","Access codes")}</h3><label class="f">${L("الحقيبة","Kit")}</label>${kitChips("ck")}
+          <label class="f">${L("نوع الكود","Code type")}</label><div class="chips" data-g="p">${[[100,L("مجاني","Free")],[50,"50%"],[40,"40%"],[30,"30%"],[20,"20%"],[10,"10%"]].map((v, i) => `<button data-v="${v[0]}" class="${i === 0 ? "on" : ""}">${v[0] < 100 ? L("خصم ","−") : ""}${v[1]}</button>`).join("")}</div>
+          <p class="muted" style="font-size:15px;margin:4px 0 0">${L("«مجاني» يفتح الحقيبة فورًا. «خصم» يُحفظ في حساب المتدرب ويُظهر سعره بعد الخصم، ويُحتسب عند الشراء.","“Free” opens the kit. “Discount” is saved to the trainee’s account and applies at purchase.")}</p>
           <label class="f">${L("عدد الأكواد","How many")}</label><div class="chips" data-g="n">${[1,5,10,20].map((v, i) => `<button data-v="${v}" class="${i === 1 ? "on" : ""}">${v}</button>`).join("")}</div>
           <label class="f">${L("الاستخدام لكل كود","Uses per code")}</label><div class="chips" data-g="u">${[[1,L("مرة","Once")],[5,"5"],[0,L("بلا حد","Unlimited")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 0 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
           <label class="f">${L("ينتهي بعد","Expires after")}</label><div class="chips" data-g="e">${[[7,L("أسبوع","1 week")],[30,L("شهر","1 month")],[0,L("بلا انتهاء","Never")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 1 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
@@ -1130,7 +1132,7 @@ async function adminBody(){
           <p class="muted" style="margin:10px 0 0">${L("الكود «مرة واحدة» يستعمله شخص واحد فقط. والكود «بلا حد» يصلح لمجموعة كاملة. ويظهر كل من دخل في تبويب «المتدربون»، ونوع وصوله «منح يدوي» أو «كود».","A “once” code works for one person only; an “unlimited” code suits a whole group. Everyone who joins appears in “Trainees” with access type “Manual” or “Code”.")}</p></div>`;
       chipBind();
       $("#grant").onclick = async () => { try { const r = await rpc("hq_owner_grant", { p_email: $("#gem").value, p_kit: pick("gk") }); toast(r === "enrolled" ? L("انفتحت الحقيبة لهذا البريد","Kit opened for this email") : L("ستنفتح عند أول دخول له","It will open on their first sign-in")); $("#gem").value = ""; } catch (e) { toast(errMsg(e)); } };
-      $("#gen").onclick = async () => { try { const codes = await rpc("hq_owner_make_codes", { p_kit: pick("ck"), p_count: +pick("n"), p_max_uses: +pick("u"), p_days: +pick("e") }); $("#codes").innerHTML = codes.map(c => `<div><span class="vcode">${esc(c)}</span></div>`).join(""); } catch (e) { toast(errMsg(e)); } };
+      $("#gen").onclick = async () => { try { const pct = +pick("p"); const codes = await rpc("hq_owner_make_codes", { p_kit: pick("ck"), p_count: +pick("n"), p_max_uses: +pick("u"), p_days: +pick("e"), p_percent: pct }); $("#codes").innerHTML = codes.map(c => `<div><span class="vcode">${esc(c)}</span><small class="muted">${pct >= 100 ? L("مجاني","Free") : L("خصم","Discount") + " " + pct + "%"}</small></div>`).join(""); } catch (e) { toast(errMsg(e)); } };
     } else if (AT === "exam") {
       el.innerHTML = `<div class="card pad"><h3>${L("إعدادات الامتحانات","Exam settings")}</h3><p class="muted">${L("تُطبَّق على كل وحدات الحقيبة المختارة.","Applied to every unit of the chosen kit.")}</p>
         <label class="f">${L("الحقيبة","Kit")}</label>${kitChips("xk")}
@@ -1176,7 +1178,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261104073725";
+const BUILD = "20261104172844";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
