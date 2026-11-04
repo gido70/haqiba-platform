@@ -1047,13 +1047,36 @@ async function adminBody(){
           ${k.cover_url ? `<img src="${esc(k.cover_url)}" alt="" style="width:120px;border-radius:12px">` : ""}<div style="flex:1;min-width:200px"><b style="color:var(--ink);font-size:22px">${esc(tx(k.name))}</b><div class="muted">${esc(tx(k.tagline))}</div>
           <a class="lk" href="#/p/${k.id}">${L("معاينة صفحة الحقيبة","Preview kit page")}</a></div></div>
           <div class="set"><b>${L("الحالة","Status")}</b><div class="chips" data-kit="${k.id}" data-f="status">${["draft","published","archived"].map(v => `<button data-v="${v}" class="${k.status === v ? "on" : ""}">${stl[v]}</button>`).join("")}</div></div>
-          <div class="set"><b>${L("الوصول","Access")}</b><div class="chips" data-kit="${k.id}" data-f="access">${["free","code","paid"].map(v => `<button data-v="${v}" class="${k.access === v ? "on" : ""}">${acl[v]}</button>`).join("")}</div></div></div>`).join("")}</div>
+          <div class="set"><b>${L("الوصول","Access")}</b><div class="chips" data-kit="${k.id}" data-f="access">${["free","code","paid"].map(v => `<button data-v="${v}" class="${k.access === v ? "on" : ""}">${acl[v]}</button>`).join("")}</div></div>
+          <details class="card post kcodes" data-kit="${k.id}" style="margin-top:10px;padding:0"><summary style="cursor:pointer;padding:12px 16px;font-weight:700;color:var(--ink)">🔑 ${L("أكواد الوصول لهذه الحقيبة","Access codes for this kit")}</summary><div class="cbody" style="padding:0 16px 14px">${spinner()}</div></details></div>`).join("")}</div>
         <div class="card pad" style="margin-top:14px"><h3>${L("وسيلة التواصل للشراء اليدوي","Contact for manual purchase")}</h3>
           <p class="muted" style="font-size:17px">${L("اتركهما فارغين الآن إن شئت. حين تملؤهما، يظهران للزائر عند ضغط «اشترِ الحقيبة» كزرين: واتساب برسالة جاهزة، وبريد. تظهر للعامة، فاختر رقمًا وبريدًا لا مانع من نشرهما.","Leave empty for now if you like. When filled, they appear to visitors who press “Buy the kit” as two buttons: WhatsApp with a ready message, and email. They are public.")}</p>
           <label class="f" for="cwa">${L("رقم واتساب بالصيغة الدولية بلا + (مثال: 971501234567)","WhatsApp number in international format without + (e.g. 971501234567)")}</label><input type="text" id="cwa" dir="ltr" inputmode="numeric" value="${esc((S.contact && S.contact.whatsapp) || "")}">
           <label class="f" for="cem">${L("البريد","Email")}</label><input type="email" id="cem" dir="ltr" value="${esc((S.contact && S.contact.email) || "")}">
           <button class="btn g" id="saveContact" style="margin-top:12px">${L("احفظ","Save")}</button></div>
         <p class="muted" style="margin-top:12px;font-size:17px">${L("«منشورة» تظهر للجميع في الكتالوج. «مسودة» لك وحدك للمراجعة. «مؤرشفة» تختفي عن الجدد ويبقى المسجلون. الوصول «بكود» يعني أن المتدرب يحتاج كود وصول أو منحًا يدويًا منك.","“Published” is visible to all. “Draft” is only for you. “Archived” hides from newcomers. “Code” access means trainees need a code or a manual grant.")}</p>`;
+      const loadCodes = async box => {
+        const kid = box.dataset.kit, body = box.querySelector(".cbody");
+        try {
+          const rows = await rpc("hq_owner_codes", { p_kit: kid }), now = Date.now();
+          const st = r => r.expires_at && new Date(r.expires_at) < now ? ["none", L("منتهٍ","Expired")] : (r.max_uses && r.uses >= r.max_uses ? ["rev", L("مستعمل","Used")] : ["okk", L("صالح","Valid")]);
+          body.innerHTML = `<div class="tw"><table><tr><th>${L("الكود","Code")}</th><th>${L("الحالة","Status")}</th><th>${L("الاستعمال","Uses")}</th><th>${L("ينتهي","Expires")}</th><th>${L("استعمله","Used by")}</th><th></th></tr>
+            ${rows.map(r => { const s2 = st(r); return `<tr><td><span class="vcode">${esc(r.code)}</span></td><td><span class="st ${s2[0]}">${s2[1]}</span></td><td>${r.uses} / ${r.max_uses || "∞"}</td><td>${r.expires_at ? fmtDate(r.expires_at) : L("بلا انتهاء","Never")}</td><td style="white-space:normal;font-size:16px">${esc(r.used_by || "—")}</td>
+              <td><button class="btn s" style="min-height:34px;padding:0 10px;font-size:15px" data-copy-code="${esc(r.code)}">${L("انسخ","Copy")}</button> <button class="btn s" style="min-height:34px;padding:0 10px;font-size:15px" data-del-code="${esc(r.code)}">${L("احذف","Delete")}</button></td></tr>`; }).join("") || `<tr><td colspan="6" class="muted">${L("لا أكواد بعد.","No codes yet.")}</td></tr>`}</table></div>
+            <div class="set"><b>${L("ولّد أكوادًا جديدة","Generate new codes")}</b><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <div class="chips" data-g="n">${[1,5,10].map((v, i) => `<button data-v="${v}" class="${i === 1 ? "on" : ""}">${v}</button>`).join("")}</div>
+              <div class="chips" data-g="u">${[[1,L("مرة لكل كود","Once each")],[0,L("بلا حد","Unlimited")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 0 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
+              <div class="chips" data-g="e">${[[30,L("شهر","1 month")],[60,L("شهران","2 months")],[0,L("بلا انتهاء","Never")]].map((v, i) => `<button data-v="${v[0]}" class="${i === 1 ? "on" : ""}">${v[1]}</button>`).join("")}</div>
+              <button class="btn g" data-gen="${kid}" style="min-height:40px">${L("ولّد","Generate")}</button></div></div>
+            <p class="muted" style="font-size:16px;margin:8px 0 0">${L("أرسل الكود للشخص؛ يفتح «حقائبي» أو صفحة الحقيبة، ويضغط «عندي كود وصول»، ويكتبه.","Send the code; they open “My kits” or the kit page, press “I have an access code” and type it.")}</p>`;
+          body.querySelectorAll(".chips button").forEach(b => b.onclick = () => b.parentElement.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)));
+          body.querySelectorAll("[data-copy-code]").forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copyCode); toast(L("نُسخ الكود","Code copied")); } catch (e) { toast(b.dataset.copyCode); } });
+          body.querySelectorAll("[data-del-code]").forEach(b => b.onclick = async () => { if (!confirm(L("حذف هذا الكود؟ من فعّله سابقًا يبقى وصوله.","Delete this code? People who already used it keep access."))) return; try { await rpc("hq_owner_delete_code", { p_code: b.dataset.delCode }); loadCodes(box); } catch (e) { toast(errMsg(e)); } });
+          const g = body.querySelector("[data-gen]"); g.onclick = async () => { const pk = n => body.querySelector(`.chips[data-g="${n}"] .on`).dataset.v; g.disabled = true;
+            try { await rpc("hq_owner_make_codes", { p_kit: kid, p_count: +pk("n"), p_max_uses: +pk("u"), p_days: +pk("e") }); toast(L("وُلّدت الأكواد","Codes generated")); loadCodes(box); } catch (e) { g.disabled = false; toast(errMsg(e)); } };
+        } catch (e) { body.innerHTML = `<div class="res no">${errMsg(e)}</div>`; }
+      };
+      el.querySelectorAll("details.kcodes").forEach(d => d.addEventListener("toggle", () => { if (d.open) loadCodes(d); }));
       $("#saveContact").onclick = async () => { try { S.contact = await rpc("hq_owner_set_contact", { p_whatsapp: $("#cwa").value, p_email: $("#cem").value }); toast(L("حُفظت وسيلة التواصل","Contact saved")); } catch (e) { toast(String(e.message || "").includes("bad_whatsapp") ? L("رقم الواتساب غير صحيح","Invalid WhatsApp number") : errMsg(e)); } };
       el.querySelectorAll(".chips[data-kit] button").forEach(b => b.onclick = async () => {
         const box = b.parentElement, f = box.dataset.f, v = b.dataset.v, id = box.dataset.kit;
@@ -1139,7 +1162,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261104072516";
+const BUILD = "20261104073258";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
