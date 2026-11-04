@@ -535,7 +535,7 @@ function pkCard(k){
       <div class="meta muted"><span>${esc(tx(k.hours))}</span><span class="price">${esc(tx(k.price))}</span></div></div></a>`;
 }
 function vHome(){
-  const groups = S.groups.map(g => { const ks = S.kits.filter(k => k.group_id === g.id); if (!ks.length) return "";
+  const groups = S.groups.map(g => { const ks = S.kits.filter(k => k.group_id === g.id && (k.status === "published" || isOwner())); if (!ks.length) return "";
     return `<div class="group"><a class="gl" href="#/g/${g.id}"><span class="ic3 sky">${I.users}</span>${L("مجموعة","Collection:")} ${esc(tx(g.name))}</a><p>${esc(tx(g.descr))}</p><a class="lk" href="#/g/${g.id}">${L("عن المجموعة","About")}</a></div><div class="grid">${ks.map(pkCard).join("")}</div>`; }).join("");
   const how = [
     [I.bag, L("حقيبة واحدة، هدف واحد","One kit, one goal"), L("كل حقيبة تنتهي بشيء تنجزه بيدك، لا بمعلومات تحفظها.","Every kit ends with something you make yourself.")],
@@ -562,7 +562,7 @@ const ART = `<svg viewBox="0 0 320 250" aria-hidden="true"><defs><linearGradient
 /* المجموعة */
 async function vGroup(id){
   const g = S.groups.find(x => x.id === id); if (!g) return vHome();
-  const ks = S.kits.filter(k => k.group_id === g.id);
+  const ks = S.kits.filter(k => k.group_id === g.id && (k.status === "published" || isOwner()));
   const units = (await Promise.all(ks.map(k => loadUnits(k.id)))).reduce((a, u) => a + u.length, 0);
   return `<div class="wrap"><section class="gban" style="background:radial-gradient(120% 140% at 85% 0%,${(g.theme && g.theme.color) || "#123E6B"}cc 0%,${(g.theme && g.theme.color) || "#123E6B"} 50%,#0B2747 100%)">
       <span class="pill">${L("مجموعة","Collection")}</span><h1>${esc(tx(g.name))}</h1><p>${esc(tx(g.descr))}</p></section>
@@ -708,7 +708,9 @@ async function vMy(){
       <div class="in"><h3 style="font-size:25px">${esc(tx(k.name))}</h3><div class="bar"><i style="width:${pct}%"></i></div><span class="muted">${done} ${L("من","of")} ${req} ${L("وحدات","units")} · ${pct}%</span></div>
       <div class="go">${st.certificate ? `<a class="btn g" href="#/cert/${k.id}">${L("الشهادة","Certificate")}</a>` : `<a class="btn p" href="#/learn/${k.id}">${done ? L("أكمل","Continue") : L("ابدأ","Start")}</a>`}</div></div>`; }).join("")
     : `<div class="card pad" style="text-align:center"><h3>${L("لا حقائب بعد","No kits yet")}</h3><p class="muted">${L("اختر حقيبة من الكتالوج وابدأ.","Pick a kit from the catalog and start.")}</p><a class="btn g" href="#/">${L("تصفّح الحقائب","Browse kits")}</a></div>`;
-  return `<div class="wrap" style="padding:26px 20px"><h1 style="font-size:38px">${L("حقائبي","My kits")}</h1><p class="muted">${L("أهلًا","Hello")} ${esc((S.profile && S.profile.name) || "")}</p><div class="mine">${list}</div></div>${foot()}`;
+  return `<div class="wrap" style="padding:26px 20px"><h1 style="font-size:38px">${L("حقائبي","My kits")}</h1><p class="muted">${L("أهلًا","Hello")} ${esc((S.profile && S.profile.name) || "")}</p><div class="mine">${list}</div>
+    <div class="card pad" style="margin-top:16px"><b style="color:var(--ink)">${L("عندك كود وصول لحقيبة؟","Have an access code for a kit?")}</b>
+      <div style="display:flex;gap:8px;margin-top:8px"><input type="text" id="myCode" dir="ltr" placeholder="HQB-XXXXXX" style="flex:1;min-width:0"><button class="btn g" id="myRedeem">${L("تفعيل","Activate")}</button></div></div></div>${foot()}`;
 }
 
 /* المشغّل ومساحة الحقيبة */
@@ -1137,7 +1139,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261102204408";
+const BUILD = "20261104072516";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
@@ -1157,7 +1159,7 @@ async function render(){
     else if (r === "g") html = await vGroup(parts[1]);
     else if (r === "p") { html = await vLanding(parts[1]); after = () => bindLanding(parts[1]); }
     else if (r === "login") { html = vLogin(); after = bindLogin; }
-    else if (r === "my") html = await vMy();
+    else if (r === "my") { html = await vMy(); after = () => { const b = $("#myRedeem"); if (b) b.onclick = async () => { b.disabled = true; try { const k2 = await rpc("hq_redeem_code", { p_code: $("#myCode").value }); toast(L("تم تفعيل الحقيبة","Kit activated")); await loadCatalog(); location.hash = "#/learn/" + k2; } catch (e) { b.disabled = false; toast(errMsg(e)); } }; }; }
     else if (r === "learn") { html = await vLearn(parts[1], parts[2]); after = () => bindLearn(parts[1]); }
     else if (r === "cert") { html = await vCert(parts[1]); after = () => bindCert(parts[1]); }
     else if (r === "verify") html = await vVerify(parts[1]);
