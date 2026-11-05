@@ -758,7 +758,7 @@ async function vLearn(id, n){
     const it = k.intro || {};
     return `<div style="${theme(k)}"><div class="wrap">${bar}<div class="pl"><aside class="card side" id="side">${sideHtml(k, units, 0)}</aside><section class="main">
       <div class="card uh"><div class="k">${L("ابدأ من هنا","Start here")}</div><h2>${esc(tx(it.title || { ar:"مقدمة الحقيبة", en:"Kit introduction" }))}</h2>${it.text ? `<p style="margin:6px 0 0">${esc(tx(it.text))}</p>` : ""}</div>
-      ${k.promo_video ? `<div class="vid" style="background:#000"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="intro" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : ""}
+      ${(it.video || k.promo_video) ? `<div class="vid" style="background:#000"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(it.video || k.promo_video)}?rel=0&modestbranding=1&playsinline=1" title="intro" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>` : ""}
       ${it.pages ? `<div class="card pdfv" style="margin-top:14px"><div class="tb"><b>${L("نظرة عامة على الحقيبة","Kit overview")}</b>${it.pdf_url ? `<a class="btn s" style="margin-inline-start:auto;min-height:40px;padding:0 14px;font-size:18px" href="${esc(it.pdf_url)}" target="_blank" rel="noopener" download>${I.dl}${L("تنزيل","Download")}</a>` : ""}</div><div class="pages">${pagesHtml(it.pages)}</div></div>` : ""}
       <div class="qbar">${(k.files || []).map((f, j) => `<button class="btn s" data-intro-file="${j}">${I.file}${esc(tx(f.title))}</button>`).join("")}<button class="btn p" id="toU1">${L("ابدأ الوحدة الأولى","Start unit one")}</button></div>
     </section></div></div></div>`;
@@ -1178,7 +1178,7 @@ function bindAdmin(){
 
 /* التوجيه */
 /* تنبيه بوجود تحديث جديد للمنصة */
-const BUILD = "20261104172844";
+const BUILD = "20261105061019";
 async function checkUpdate(){
   try { const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) return; const v = await r.json();
     if (v.build && v.build !== BUILD && !$("#upd")) { const d = document.createElement("div"); d.id = "upd"; d.className = "toast on"; d.style.pointerEvents = "auto"; d.style.cursor = "pointer";
